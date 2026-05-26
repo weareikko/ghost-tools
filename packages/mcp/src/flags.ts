@@ -12,3 +12,7 @@ export function parseReadOnlyFlag(): boolean {
 export function parsePublicFlag(): boolean {
   return process.argv.includes("--public") || process.env.GHOST_PUBLIC === "true";
 }
+
+export function parseDualModeFlag(): boolean {
+  return process.argv.includes("--dual") || process.env.GHOST_DUAL === "true";
+}

@@ -60,17 +60,29 @@ export const oauthMetadataHandler = defineEventHandler((event: H3Event) => {
   };
 });
 
-export const protectedResourceHandler = defineEventHandler((event: H3Event) => {
-  const url = baseUrl(event);
-  event.res.headers.set("Content-Type", "application/json");
-  event.res.headers.set("Cache-Control", "public, max-age=3600");
-  return {
-    resource: `${url}/mcp`,
-    authorization_servers: [url],
-    bearer_methods_supported: ["header"],
-    scopes_supported: ["ghost"],
-  };
-});
+/**
+ * Factory for the OAuth protected-resource metadata handler.
+ *
+ * `mcpPath` is the URL path of the MCP endpoint being protected, e.g. `/mcp`
+ * (default) or `/admin/mcp` (dual-mode). The resulting handler is registered at
+ * `/.well-known/oauth-protected-resource` and `/.well-known/oauth-protected-resource/**`.
+ */
+export function createProtectedResourceHandler(mcpPath = "/mcp") {
+  return defineEventHandler((event: H3Event) => {
+    const url = baseUrl(event);
+    event.res.headers.set("Content-Type", "application/json");
+    event.res.headers.set("Cache-Control", "public, max-age=3600");
+    return {
+      resource: `${url}${mcpPath}`,
+      authorization_servers: [url],
+      bearer_methods_supported: ["header"],
+      scopes_supported: ["ghost"],
+    };
+  });
+}
+
+/** Default protected-resource handler for single-endpoint deployments. */
+export const protectedResourceHandler = createProtectedResourceHandler();
 
 export const registerHandler = defineEventHandler(async (event: H3Event) => {
   event.res.headers.set("Content-Type", "application/json");

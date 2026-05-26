@@ -33,8 +33,8 @@ import { INSTRUCTIONS, PUBLIC_INSTRUCTIONS } from "./instructions.ts";
 import {
   authorizeGetHandler,
   authorizePostHandler,
+  createProtectedResourceHandler,
   oauthMetadataHandler,
-  protectedResourceHandler,
   registerHandler,
   tokenHandler,
 } from "./oauth.ts";
@@ -253,10 +253,23 @@ export function createMcpRequestHandler(
   return (req, res) => handleMcpRequest(req, res, sessions, options);
 }
 
+export interface HealthAppOptions {
+  /**
+   * The URL path of the OAuth-protected MCP endpoint.
+   *
+   * Defaults to `/mcp`. In dual mode this is `/admin/mcp` so that
+   * `/.well-known/oauth-protected-resource` advertises the correct resource URL.
+   */
+  adminMcpPath?: string;
+}
+
 /**
  * h3 app handling everything that isn't the MCP endpoint (health, OAuth).
  */
-export function createHealthApp(): H3 {
+export function createHealthApp(opts?: HealthAppOptions): H3 {
+  const adminMcpPath = opts?.adminMcpPath ?? "/mcp";
+  const protectedResourceHandler = createProtectedResourceHandler(adminMcpPath);
+
   const app = new H3();
 
   app.get(
@@ -270,7 +283,7 @@ export function createHealthApp(): H3 {
 
   app.get("/.well-known/oauth-authorization-server", oauthMetadataHandler);
   // Exact match + wildcard to support path-aware discovery (RFC 9728 / MCP SDK).
-  // The SDK appends the MCP path to the well-known prefix (e.g. /.well-known/oauth-protected-resource/mcp)
+  // The SDK appends the MCP path to the well-known prefix (e.g. /.well-known/oauth-protected-resource/admin/mcp)
   // and falls back to the root only on 404 — serving both avoids the extra round-trip.
   app.get("/.well-known/oauth-protected-resource", protectedResourceHandler);
   app.get("/.well-known/oauth-protected-resource/**", protectedResourceHandler);
