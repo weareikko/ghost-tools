@@ -222,7 +222,11 @@ export function createHealthApp(): H3 {
   app.get('/health', defineEventHandler(() => ({ status: 'ok' })));
 
   app.get('/.well-known/oauth-authorization-server', oauthMetadataHandler);
+  // Exact match + wildcard to support path-aware discovery (RFC 9728 / MCP SDK).
+  // The SDK appends the MCP path to the well-known prefix (e.g. /.well-known/oauth-protected-resource/mcp)
+  // and falls back to the root only on 404 — serving both avoids the extra round-trip.
   app.get('/.well-known/oauth-protected-resource', protectedResourceHandler);
+  app.get('/.well-known/oauth-protected-resource/**', protectedResourceHandler);
   app.post('/register', registerHandler);
   app.get('/authorize', authorizeGetHandler);
   app.post('/authorize', authorizePostHandler);

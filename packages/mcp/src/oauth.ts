@@ -15,13 +15,31 @@
 import { defineEventHandler, getQuery, readBody, type H3Event } from 'h3';
 import { createHash } from 'node:crypto';
 
-import { createAuthToken } from './auth.ts';
+import { createAuthToken, debugAuth, summarizeSecret } from './auth.ts';
 import { createAuthCode, decodeAuthCode } from './crypto.ts';
 
 function baseUrl(event: H3Event): string {
   const host = event.req.headers.get('host') ?? 'localhost:3000';
   const proto = event.req.headers.get('x-forwarded-proto') ?? 'http';
   return `${proto}://${host}`;
+}
+
+function tokenResponse(accessToken: string, refreshToken: string): Record<string, unknown> {
+  const response = {
+    access_token: accessToken,
+    token_type: 'Bearer',
+    expires_in: 3600,
+    refresh_token: refreshToken,
+    scope: 'ghost',
+  };
+  debugAuth('oauth.token.response', {
+    accessToken: summarizeSecret(accessToken),
+    refreshToken: { present: true, length: refreshToken.length },
+    tokenType: response.token_type,
+    expiresIn: response.expires_in,
+    scope: response.scope,
+  });
+  return response;
 }
 
 export const oauthMetadataHandler = defineEventHandler((event: H3Event) => {
@@ -233,12 +251,7 @@ export const tokenHandler = defineEventHandler(async (event: H3Event) => {
       },
       86400 * 30,
     );
-    return {
-      access_token: accessToken,
-      token_type: 'Bearer',
-      expires_in: 3600,
-      refresh_token: refreshToken,
-    };
+    return tokenResponse(accessToken, refreshToken);
   } catch (error) {
     event.res.status = 400;
     return {
@@ -268,12 +281,7 @@ function handleRefreshToken(event: H3Event, refreshToken: string | undefined) {
       },
       86400 * 30,
     );
-    return {
-      access_token: accessToken,
-      token_type: 'Bearer',
-      expires_in: 3600,
-      refresh_token: newRefresh,
-    };
+    return tokenResponse(accessToken, newRefresh);
   } catch (error) {
     event.res.status = 400;
     return {
