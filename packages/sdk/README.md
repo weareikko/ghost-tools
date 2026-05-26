@@ -12,27 +12,27 @@ npm install @ikko-dev/ghost-sdk
 ## Usage
 
 ```ts
-import { Ghost } from '@ikko-dev/ghost-sdk';
+import { Ghost } from "@ikko-dev/ghost-sdk";
 
 const ghost = new Ghost({
   admin: {
-    url: 'https://my-blog.ghost.io',
-    staffAccessToken: 'xxxxxxxxxxxxxxxxxxxxxxxx:abcdef...',
+    url: "https://my-blog.ghost.io",
+    staffAccessToken: "xxxxxxxxxxxxxxxxxxxxxxxx:abcdef...",
   },
 });
 
 // Browse posts
-const { items, meta } = await ghost.posts.browse({ filter: 'status:published', limit: 10 });
+const { items, meta } = await ghost.posts.browse({ filter: "status:published", limit: 10 });
 
 // Read one
-const post = await ghost.posts.read('64...');
+const post = await ghost.posts.read("64...");
 
 // Create
-const created = await ghost.posts.add({ title: 'Hello world', status: 'draft' });
+const created = await ghost.posts.add({ title: "Hello world", status: "draft" });
 
 // Update (Ghost requires `updated_at` for optimistic concurrency)
 await ghost.posts.edit(created!.id, {
-  title: 'Updated title',
+  title: "Updated title",
   updated_at: created!.updated_at!,
 });
 
@@ -43,7 +43,7 @@ await ghost.posts.delete(created!.id);
 ## Pagination helper
 
 ```ts
-import { paginate } from '@ikko-dev/ghost-sdk';
+import { paginate } from "@ikko-dev/ghost-sdk";
 
 for await (const post of paginate((page) => ghost.posts.browse({ page, limit: 50 }))) {
   console.log(post.title);
@@ -52,9 +52,9 @@ for await (const post of paginate((page) => ghost.posts.browse({ page, limit: 50
 
 ## Resources
 
-| Property | API | CRUD verbs |
-| -------- | --- | ---------- |
-| `posts`, `pages` | Admin | browse, read, readBySlug, add, edit, delete, copy |
-| `tags`, `members`, `tiers`, `newsletters`, `offers`, `users`, `webhooks` | Admin | browse, read, add, edit, delete (subset per resource) |
-| `contentPosts`, `contentPages`, `contentTags`, `contentTiers`, `authors` | Content | browse, read, readBySlug |
-| `site()`, `roles()`, `uploadImage(...)` | Admin | one-shot helpers |
+| Property                                                                 | API     | CRUD verbs                                            |
+| ------------------------------------------------------------------------ | ------- | ----------------------------------------------------- |
+| `posts`, `pages`                                                         | Admin   | browse, read, readBySlug, add, edit, delete, copy     |
+| `tags`, `members`, `tiers`, `newsletters`, `offers`, `users`, `webhooks` | Admin   | browse, read, add, edit, delete (subset per resource) |
+| `contentPosts`, `contentPages`, `contentTags`, `contentTiers`, `authors` | Content | browse, read, readBySlug                              |
+| `site()`, `roles()`, `uploadImage(...)`                                  | Admin   | one-shot helpers                                      |

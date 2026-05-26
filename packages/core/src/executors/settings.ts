@@ -1,5 +1,5 @@
-import type { ExecutorContext, ExecutorResult } from '../context.ts';
-import { ROUTES, request } from '../routes.ts';
+import type { ExecutorContext, ExecutorResult } from "../context.ts";
+import { ROUTES, request } from "../routes.ts";
 
 export interface SettingEntry {
   key: string;
@@ -30,8 +30,13 @@ export async function editSettings(
   options: EditSettingsOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<SettingEntry[]>> {
-  const response = await request<SettingsEnvelope>(ROUTES.settings.edit, ctx, {}, {
-    body: { settings: options.settings },
-  });
+  const response = await request<SettingsEnvelope>(
+    ROUTES.settings.edit,
+    ctx,
+    {},
+    {
+      body: { settings: options.settings },
+    },
+  );
   return { data: response.settings };
 }

@@ -8,7 +8,7 @@
  * Adapters (SDK, MCP) handle all I/O.
  */
 
-import type { ExecutorContext, ExecutorResult } from '../context.ts';
+import type { ExecutorContext, ExecutorResult } from "../context.ts";
 
 export type Executor<TOptions, TData> = (
   options: TOptions,
@@ -23,7 +23,7 @@ export interface BrowseOptions {
   include?: string;
   fields?: string;
   formats?: string;
-  limit?: number | 'all';
+  limit?: number | "all";
   page?: number;
   order?: string;
 }

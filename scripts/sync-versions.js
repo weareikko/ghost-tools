@@ -8,25 +8,25 @@
  *
  * Usage: node scripts/sync-versions.js
  */
-import { readFileSync, writeFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFileSync, writeFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const rootDir = resolve(__dirname, '..');
+const rootDir = resolve(__dirname, "..");
 
-const PACKAGES = ['api', 'core', 'sdk', 'mcp'];
-const SCOPE = '@ikko-dev/ghost-';
+const PACKAGES = ["api", "core", "sdk", "mcp"];
+const SCOPE = "@ikko-dev/ghost-";
 
 // Read root version as source of truth
-const rootPkg = JSON.parse(readFileSync(resolve(rootDir, 'package.json'), 'utf-8'));
+const rootPkg = JSON.parse(readFileSync(resolve(rootDir, "package.json"), "utf-8"));
 const version = rootPkg.version;
 
 console.log(`Syncing all packages to version ${version}...\n`);
 
 for (const pkg of PACKAGES) {
-  const pkgPath = resolve(rootDir, 'packages', pkg, 'package.json');
-  const pkgJson = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+  const pkgPath = resolve(rootDir, "packages", pkg, "package.json");
+  const pkgJson = JSON.parse(readFileSync(pkgPath, "utf-8"));
   const changes = [];
 
   // Sync version
@@ -38,7 +38,7 @@ for (const pkg of PACKAGES) {
   // Sync inter-package dependencies
   if (pkgJson.dependencies) {
     for (const [dep, range] of Object.entries(pkgJson.dependencies)) {
-      if (dep.startsWith(SCOPE) && range === '*') {
+      if (dep.startsWith(SCOPE) && range === "*") {
         pkgJson.dependencies[dep] = version;
         changes.push(`  ${dep}: * → ${version}`);
       }
@@ -46,7 +46,7 @@ for (const pkg of PACKAGES) {
   }
 
   if (changes.length > 0) {
-    writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2) + '\n');
+    writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2) + "\n");
     console.log(`✓ ${pkgJson.name}`);
     for (const change of changes) console.log(change);
   } else {

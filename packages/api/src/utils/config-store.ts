@@ -1,6 +1,6 @@
-import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
-import { homedir, platform } from 'node:os';
-import { dirname, join } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { homedir, platform } from "node:os";
+import { dirname, join } from "node:path";
 
 /**
  * XDG-compliant JSON configuration store.
@@ -31,7 +31,7 @@ export class ConfigStore<T extends object> {
       return null;
     }
     try {
-      const content = this.fs.readFileSync(this.configPath, 'utf-8');
+      const content = this.fs.readFileSync(this.configPath, "utf-8");
       return JSON.parse(content) as T;
     } catch {
       return null;
@@ -47,7 +47,7 @@ export class ConfigStore<T extends object> {
     if (!this.fs.existsSync(dir)) {
       this.fs.mkdirSync(dir, { recursive: true });
     }
-    this.fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), 'utf-8');
+    this.fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), "utf-8");
   }
 
   update(partial: Partial<T>): void {
@@ -68,17 +68,17 @@ export class ConfigStore<T extends object> {
   private resolveConfigPath(): string {
     const os = platform();
 
-    if (os === 'win32') {
-      const appData = process.env.APPDATA ?? join(homedir(), 'AppData', 'Roaming');
-      return join(appData, this.appName, 'config.json');
+    if (os === "win32") {
+      const appData = process.env.APPDATA ?? join(homedir(), "AppData", "Roaming");
+      return join(appData, this.appName, "config.json");
     }
 
-    if (os === 'darwin') {
-      return join(homedir(), 'Library', 'Application Support', this.appName, 'config.json');
+    if (os === "darwin") {
+      return join(homedir(), "Library", "Application Support", this.appName, "config.json");
     }
 
-    const xdgConfig = process.env.XDG_CONFIG_HOME ?? join(homedir(), '.config');
-    return join(xdgConfig, this.appName, 'config.json');
+    const xdgConfig = process.env.XDG_CONFIG_HOME ?? join(homedir(), ".config");
+    return join(xdgConfig, this.appName, "config.json");
   }
 }
 

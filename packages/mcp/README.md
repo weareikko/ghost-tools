@@ -12,12 +12,12 @@ transports.
 ghost(resource, action, [parameters...])
 ```
 
-| Action | Notes |
-| ------ | ----- |
+| Action   | Notes                                                               |
+| -------- | ------------------------------------------------------------------- |
 | `browse` | List resources with NQL filter, include, fields, limit, page, order |
-| `read` | Fetch one resource by `id` or `slug` |
-| `help` | Resource documentation |
-| `schema` | Field shape reference |
+| `read`   | Fetch one resource by `id` or `slug`                                |
+| `help`   | Resource documentation                                              |
+| `schema` | Field shape reference                                               |
 
 ### `ghost_write` — write operations
 
@@ -25,14 +25,14 @@ ghost(resource, action, [parameters...])
 ghost_write(resource, action, payload?, ...)
 ```
 
-| Action | Notes |
-| ------ | ----- |
-| `add` | Create a new resource — pass `payload: {...}` |
-| `edit` | Update by `id` — pass `payload: { updated_at, ... }` |
-| `delete` | Remove by `id` |
-| `copy` | Duplicate a post or page (creates a draft) |
-| `upload` | Upload a base64-encoded image or theme zip |
-| `activate` | Activate an uploaded theme |
+| Action     | Notes                                                |
+| ---------- | ---------------------------------------------------- |
+| `add`      | Create a new resource — pass `payload: {...}`        |
+| `edit`     | Update by `id` — pass `payload: { updated_at, ... }` |
+| `delete`   | Remove by `id`                                       |
+| `copy`     | Duplicate a post or page (creates a draft)           |
+| `upload`   | Upload a base64-encoded image or theme zip           |
+| `activate` | Activate an uploaded theme                           |
 
 ### Resources
 

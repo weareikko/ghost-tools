@@ -8,12 +8,7 @@ export default defineConfig({
       index: "./src/index.ts",
       server: "./src/server.ts",
     },
-    external: [
-      "@ikko-dev/ghost-api",
-      "@ikko-dev/ghost-core",
-      /^@modelcontextprotocol\/sdk/,
-      /^h3/,
-    ],
+    external: ["@ikko-dev/ghost-api", "@ikko-dev/ghost-core", /^@modelcontextprotocol\/sdk/, /^h3/],
   }),
   test: createTestConfig({ name: "mcp" }),
 });

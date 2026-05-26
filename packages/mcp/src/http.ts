@@ -13,23 +13,23 @@
  * - MCP requests routed straight to the SDK transport
  */
 
-import { randomUUID } from 'node:crypto';
-import type { IncomingMessage, ServerResponse } from 'node:http';
+import { randomUUID } from "node:crypto";
+import type { IncomingMessage, ServerResponse } from "node:http";
 
 // eslint-disable-next-line typescript-eslint/no-deprecated
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   type CallToolResult,
-} from '@modelcontextprotocol/sdk/types.js';
-import { H3, defineEventHandler } from 'h3';
+} from "@modelcontextprotocol/sdk/types.js";
+import { H3, defineEventHandler } from "h3";
 
-import type { GhostCredentials } from './auth.ts';
-import { parseAuthHeader } from './auth.ts';
-import { executeToolWithCredentials } from './handlers.ts';
-import { INSTRUCTIONS } from './instructions.ts';
+import type { GhostCredentials } from "./auth.ts";
+import { parseAuthHeader } from "./auth.ts";
+import { executeToolWithCredentials } from "./handlers.ts";
+import { INSTRUCTIONS, PUBLIC_INSTRUCTIONS } from "./instructions.ts";
 import {
   authorizeGetHandler,
   authorizePostHandler,
@@ -37,16 +37,28 @@ import {
   protectedResourceHandler,
   registerHandler,
   tokenHandler,
-} from './oauth.ts';
-import { SessionManager } from './sessions.ts';
-import { getTools } from './tools.ts';
-import { VERSION } from './version.ts';
+} from "./oauth.ts";
+import { SessionManager } from "./sessions.ts";
+import { getTools } from "./tools.ts";
+import { VERSION } from "./version.ts";
 
-export { SessionManager } from './sessions.ts';
+export { SessionManager } from "./sessions.ts";
 
 export interface HttpServerOptions {
   /** When true, `ghost_write` is not registered. */
   readOnly?: boolean;
+  /**
+   * When true, the `/mcp` endpoint skips Bearer auth entirely and uses
+   * pre-configured Content API credentials. Only content resources are served.
+   */
+  publicMode?: boolean;
+  /**
+   * Pre-validated credentials for public mode. Set by `startHttpServer()` after
+   * reading and validating `GHOST_URL` + `GHOST_CONTENT_KEY` from the environment.
+   *
+   * @internal Not part of the public API — set by the server startup, not callers.
+   */
+  _publicCredentials?: GhostCredentials;
 }
 
 /**
@@ -54,11 +66,13 @@ export interface HttpServerOptions {
  */
 export function createMcpServer(options?: HttpServerOptions): Server {
   const readOnly = options?.readOnly ?? false;
-  const tools = getTools({ readOnly });
+  const publicMode = options?.publicMode ?? false;
+  const tools = getTools({ readOnly, publicMode });
+  const instructions = publicMode ? PUBLIC_INSTRUCTIONS : INSTRUCTIONS;
 
   const server = new Server(
-    { name: 'ghost-mcp', version: VERSION },
-    { capabilities: { tools: {} }, instructions: INSTRUCTIONS },
+    { name: "ghost-mcp", version: VERSION },
+    { capabilities: { tools: {} }, instructions },
   );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools }));
@@ -77,30 +91,35 @@ export function createMcpServer(options?: HttpServerOptions): Server {
     /* v8 ignore start */
     if (!credentials) {
       return {
-        content: [{ type: 'text' as const, text: 'Error: Authentication required.' }],
-        structuredContent: { success: false, error: 'Authentication required.' },
+        content: [{ type: "text" as const, text: "Error: Authentication required." }],
+        structuredContent: { success: false, error: "Authentication required." },
         isError: true,
       };
     }
     /* v8 ignore stop */
 
-    if (readOnly && name === 'ghost_write') {
+    if (readOnly && name === "ghost_write") {
       return {
         content: [
           {
-            type: 'text' as const,
-            text: 'Error: Server is running in read-only mode. Write operations are disabled.',
+            type: "text" as const,
+            text: "Error: Server is running in read-only mode. Write operations are disabled.",
           },
         ],
         structuredContent: {
           success: false,
-          error: 'Server is running in read-only mode. Write operations are disabled.',
+          error: "Server is running in read-only mode. Write operations are disabled.",
         },
         isError: true,
       };
     }
 
-    const result = await executeToolWithCredentials(name, /* v8 ignore next */ args ?? {}, credentials);
+    const result = await executeToolWithCredentials(
+      name,
+      /* v8 ignore next */ args ?? {},
+      credentials,
+      publicMode,
+    );
     return result as CallToolResult;
   });
 
@@ -116,56 +135,81 @@ export async function handleMcpRequest(
   sessions: SessionManager,
   options?: HttpServerOptions,
 ): Promise<void> {
-  const authHeader = req.headers.authorization;
-  const credentials = parseAuthHeader(authHeader);
+  const publicMode = options?.publicMode ?? false;
 
-  if (!credentials) {
-    const host = req.headers.host || 'localhost:3000';
-    const proto = req.headers['x-forwarded-proto'];
-    const protocol = (typeof proto === 'string' ? proto : undefined) || 'http';
-    const resourceMetadataUrl = `${protocol}://${host}/.well-known/oauth-protected-resource`;
+  let credentials: GhostCredentials | null;
+  let authToken: string;
 
-    res.writeHead(401, {
-      'Content-Type': 'application/json',
-      'WWW-Authenticate': `Bearer resource_metadata="${resourceMetadataUrl}"`,
-    });
-    res.end(
-      JSON.stringify({
-        jsonrpc: '2.0',
-        error: {
-          code: -32001,
-          message:
-            'Authentication required. Provide a Bearer token containing your Ghost credentials. Visit /authorize to obtain one.',
-        },
-        id: null,
-      }),
-    );
-    return;
+  if (publicMode) {
+    // Public mode: credentials are pre-validated at startup, no Bearer token needed.
+    credentials = options?._publicCredentials ?? null;
+    /* v8 ignore start */
+    if (!credentials) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          error: { code: -32000, message: "Server misconfiguration: missing public credentials." },
+          id: null,
+        }),
+      );
+      return;
+    }
+    /* v8 ignore stop */
+    authToken = "public";
+  } else {
+    const authHeader = req.headers.authorization;
+    credentials = parseAuthHeader(authHeader);
+
+    if (!credentials) {
+      const host = req.headers.host || "localhost:3000";
+      const proto = req.headers["x-forwarded-proto"];
+      const protocol = (typeof proto === "string" ? proto : undefined) || "http";
+      const resourceMetadataUrl = `${protocol}://${host}/.well-known/oauth-protected-resource`;
+
+      res.writeHead(401, {
+        "Content-Type": "application/json",
+        "WWW-Authenticate": `Bearer resource_metadata="${resourceMetadataUrl}"`,
+      });
+      res.end(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          error: {
+            code: -32001,
+            message:
+              "Authentication required. Provide a Bearer token containing your Ghost credentials. Visit /authorize to obtain one.",
+          },
+          id: null,
+        }),
+      );
+      return;
+    }
+    authToken = req.headers.authorization ?? "";
   }
 
   // Stash credentials on the request — the MCP SDK forwards `auth` to handlers as `extra.authInfo`
   Object.assign(req, {
     auth: {
-      token: authHeader,
-      clientId: 'ghost-http-client',
+      token: authToken,
+      clientId: "ghost-http-client",
       scopes: [],
       credentials,
     },
   });
 
-  const sessionHeader = req.headers['mcp-session-id'];
-  const sessionId = typeof sessionHeader === 'string' ? sessionHeader : undefined;
+  const sessionHeader = req.headers["mcp-session-id"];
+  const sessionId = typeof sessionHeader === "string" ? sessionHeader : undefined;
 
   if (sessionId) {
     const session = sessions.get(sessionId);
     if (!session) {
-      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.writeHead(404, { "Content-Type": "application/json" });
       res.end(
         JSON.stringify({
-          jsonrpc: '2.0',
+          jsonrpc: "2.0",
           error: {
             code: -32000,
-            message: 'Session not found. It may have expired or been terminated.',
+            message: "Session not found. It may have expired or been terminated.",
           },
           id: null,
         }),
@@ -216,21 +260,24 @@ export function createHealthApp(): H3 {
   const app = new H3();
 
   app.get(
-    '/',
-    defineEventHandler(() => ({ status: 'ok', service: 'ghost-mcp', version: VERSION })),
+    "/",
+    defineEventHandler(() => ({ status: "ok", service: "ghost-mcp", version: VERSION })),
   );
-  app.get('/health', defineEventHandler(() => ({ status: 'ok' })));
+  app.get(
+    "/health",
+    defineEventHandler(() => ({ status: "ok" })),
+  );
 
-  app.get('/.well-known/oauth-authorization-server', oauthMetadataHandler);
+  app.get("/.well-known/oauth-authorization-server", oauthMetadataHandler);
   // Exact match + wildcard to support path-aware discovery (RFC 9728 / MCP SDK).
   // The SDK appends the MCP path to the well-known prefix (e.g. /.well-known/oauth-protected-resource/mcp)
   // and falls back to the root only on 404 — serving both avoids the extra round-trip.
-  app.get('/.well-known/oauth-protected-resource', protectedResourceHandler);
-  app.get('/.well-known/oauth-protected-resource/**', protectedResourceHandler);
-  app.post('/register', registerHandler);
-  app.get('/authorize', authorizeGetHandler);
-  app.post('/authorize', authorizePostHandler);
-  app.post('/token', tokenHandler);
+  app.get("/.well-known/oauth-protected-resource", protectedResourceHandler);
+  app.get("/.well-known/oauth-protected-resource/**", protectedResourceHandler);
+  app.post("/register", registerHandler);
+  app.get("/authorize", authorizeGetHandler);
+  app.post("/authorize", authorizePostHandler);
+  app.post("/token", tokenHandler);
 
   return app;
 }

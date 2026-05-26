@@ -1,4 +1,4 @@
-import type { GhostHttpClient } from '@ikko-dev/ghost-api';
+import type { GhostHttpClient } from "@ikko-dev/ghost-api";
 
 /**
  * Execution context injected into every executor.
@@ -10,7 +10,7 @@ export interface ExecutorContext {
   /** HTTP client for Ghost API calls. */
   client: GhostHttpClient;
   /** Which API to call by default — Admin (signed JWT) or Content (key=). */
-  api: 'admin' | 'content';
+  api: "admin" | "content";
 }
 
 /**
@@ -27,7 +27,8 @@ export function createTestExecutorContext(
   overrides: Partial<ExecutorContext> = {},
 ): ExecutorContext {
   const stub = new Proxy({} as GhostHttpClient, {
-    get: (_target, prop) =>
+    get:
+      (_target, prop) =>
       (..._args: unknown[]) => {
         throw new Error(
           `GhostHttpClient.${String(prop)}() called without mock — inject a mock client in createTestExecutorContext()`,
@@ -37,7 +38,7 @@ export function createTestExecutorContext(
 
   return {
     client: stub,
-    api: 'admin',
+    api: "admin",
     ...overrides,
   };
 }

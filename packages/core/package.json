@@ -4,9 +4,9 @@
   "description": "Shared business logic for Ghost CMS tools — executors, routes, context",
   "keywords": [
     "api",
+    "cms",
     "executor",
-    "ghost",
-    "cms"
+    "ghost"
   ],
   "license": "MIT",
   "author": "ikko",

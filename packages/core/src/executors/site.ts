@@ -1,7 +1,7 @@
-import type { SiteInfo } from '@ikko-dev/ghost-api';
+import type { SiteInfo } from "@ikko-dev/ghost-api";
 
-import type { ExecutorContext, ExecutorResult } from '../context.ts';
-import { ROUTES, request } from '../routes.ts';
+import type { ExecutorContext, ExecutorResult } from "../context.ts";
+import { ROUTES, request } from "../routes.ts";
 
 interface SiteEnvelope {
   site: SiteInfo;

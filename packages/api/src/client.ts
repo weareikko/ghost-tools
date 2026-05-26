@@ -1,9 +1,9 @@
-import type { AdminCredentials, ContentCredentials, GhostOptions } from './types.ts';
+import type { AdminCredentials, ContentCredentials, GhostOptions } from "./types.ts";
 
-import { extractGhostErrorMessage, GhostApiError } from './errors.ts';
-import { signAdminJwt } from './jwt.ts';
+import { extractGhostErrorMessage, GhostApiError } from "./errors.ts";
+import { signAdminJwt } from "./jwt.ts";
 
-const DEFAULT_ACCEPT_VERSION = 'v5.0';
+const DEFAULT_ACCEPT_VERSION = "v5.0";
 
 /**
  * Low-level HTTP client for Ghost.
@@ -25,16 +25,16 @@ export class GhostHttpClient {
     options?: GhostOptions,
   ) {
     if (!credentials.admin && !credentials.content) {
-      throw new Error('GhostHttpClient requires either admin or content credentials.');
+      throw new Error("GhostHttpClient requires either admin or content credentials.");
     }
 
     // url is taken from whichever credential set is provided; admin wins if both
     const url = credentials.admin?.url ?? credentials.content?.url;
     /* v8 ignore next 3 */
     if (!url) {
-      throw new Error('GhostHttpClient requires a Ghost site URL.');
+      throw new Error("GhostHttpClient requires a Ghost site URL.");
     }
-    this.url = url.replace(/\/$/, '');
+    this.url = url.replace(/\/$/, "");
     this.acceptVersion = options?.acceptVersion ?? DEFAULT_ACCEPT_VERSION;
     this.fetch = options?.fetch ?? globalThis.fetch;
     this.admin = credentials.admin;
@@ -51,13 +51,13 @@ export class GhostHttpClient {
     query?: Record<string, string | number | undefined>,
   ): Promise<T> {
     if (!this.admin) {
-      throw new Error('Admin API call attempted but no admin credentials configured.');
+      throw new Error("Admin API call attempted but no admin credentials configured.");
     }
     const url = this.buildUrl(`/ghost/api/admin${path}`, query);
     const jwt = signAdminJwt(this.admin.staffAccessToken);
     return this.request<T>(method, url, body, {
       Authorization: `Ghost ${jwt}`,
-      'Accept-Version': this.acceptVersion,
+      "Accept-Version": this.acceptVersion,
     });
   }
 
@@ -65,19 +65,19 @@ export class GhostHttpClient {
    * Content API request — appends `?key=...` query param.
    */
   async content_<T = unknown>(
-    method: 'GET',
+    method: "GET",
     path: string,
     query?: Record<string, string | number | undefined>,
   ): Promise<T> {
     if (!this.content) {
-      throw new Error('Content API call attempted but no content credentials configured.');
+      throw new Error("Content API call attempted but no content credentials configured.");
     }
     const url = this.buildUrl(`/ghost/api/content${path}`, {
       ...query,
       key: this.content.contentApiKey,
     });
     return this.request<T>(method, url, undefined, {
-      'Accept-Version': this.acceptVersion,
+      "Accept-Version": this.acceptVersion,
     });
   }
 
@@ -93,11 +93,11 @@ export class GhostHttpClient {
   ): Promise<T> {
     /* v8 ignore start */
     if (!this.admin) {
-      throw new Error('Admin upload attempted but no admin credentials configured.');
+      throw new Error("Admin upload attempted but no admin credentials configured.");
     }
     /* v8 ignore stop */
     const formData = new FormData();
-    formData.append('file', file, filename);
+    formData.append("file", file, filename);
     if (fields) {
       for (const [key, value] of Object.entries(fields)) {
         formData.append(key, value);
@@ -107,10 +107,10 @@ export class GhostHttpClient {
     const jwt = signAdminJwt(this.admin.staffAccessToken);
 
     const response = await this.fetch(url, {
-      method: 'POST',
+      method: "POST",
       headers: {
         Authorization: `Ghost ${jwt}`,
-        'Accept-Version': this.acceptVersion,
+        "Accept-Version": this.acceptVersion,
       },
       body: formData,
     });
@@ -122,11 +122,10 @@ export class GhostHttpClient {
    * Build a fully-qualified URL with query parameters.
    */
   private buildUrl(path: string, query?: Record<string, string | number | undefined>): string {
-    const normalized = path.startsWith('/') ? path : `/${path}`;
+    const normalized = path.startsWith("/") ? path : `/${path}`;
     // Ghost paths must end in a slash (before query string)
-    const withTrailingSlash = normalized.endsWith('/') || normalized.includes('?')
-      ? normalized
-      : `${normalized}/`;
+    const withTrailingSlash =
+      normalized.endsWith("/") || normalized.includes("?") ? normalized : `${normalized}/`;
     const full = `${this.url}${withTrailingSlash}`;
 
     if (!query) return full;
@@ -148,11 +147,11 @@ export class GhostHttpClient {
     headers: Record<string, string>,
   ): Promise<T> {
     const finalHeaders: Record<string, string> = {
-      Accept: 'application/json',
+      Accept: "application/json",
       ...headers,
     };
     if (body !== undefined) {
-      finalHeaders['Content-Type'] = 'application/json';
+      finalHeaders["Content-Type"] = "application/json";
     }
     const response = await this.fetch(url, {
       method,
@@ -184,12 +183,12 @@ export class GhostHttpClient {
       return undefined as T;
     }
 
-    const contentType = response.headers.get('content-type') ?? '';
-    if (contentType.includes('application/json')) {
+    const contentType = response.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
       return (await response.json()) as T;
     }
     return (await response.text()) as T;
   }
 }
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";

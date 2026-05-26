@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "description": "Fluent TypeScript SDK for the Ghost CMS API",
   "keywords": [
-    "ghost",
     "cms",
+    "ghost",
     "sdk",
     "typescript"
   ],

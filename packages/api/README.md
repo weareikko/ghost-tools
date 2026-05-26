@@ -17,16 +17,16 @@ npm install @ikko-dev/ghost-api
 ### Admin API (staff access token)
 
 ```ts
-import { GhostHttpClient } from '@ikko-dev/ghost-api';
+import { GhostHttpClient } from "@ikko-dev/ghost-api";
 
 const client = new GhostHttpClient({
   admin: {
-    url: 'https://my-blog.ghost.io',
-    staffAccessToken: 'xxxxxxxxxxxxxxxxxxxxxxxx:abcdef...',
+    url: "https://my-blog.ghost.io",
+    staffAccessToken: "xxxxxxxxxxxxxxxxxxxxxxxx:abcdef...",
   },
 });
 
-const { posts } = await client.admin_<{ posts: Post[] }>('GET', '/posts');
+const { posts } = await client.admin_<{ posts: Post[] }>("GET", "/posts");
 ```
 
 ### Content API (content API key)
@@ -34,12 +34,12 @@ const { posts } = await client.admin_<{ posts: Post[] }>('GET', '/posts');
 ```ts
 const client = new GhostHttpClient({
   content: {
-    url: 'https://my-blog.ghost.io',
-    contentApiKey: 'abcdef0123456789abcdef0123',
+    url: "https://my-blog.ghost.io",
+    contentApiKey: "abcdef0123456789abcdef0123",
   },
 });
 
-const { posts } = await client.content_<{ posts: Post[] }>('GET', '/posts');
+const { posts } = await client.content_<{ posts: Post[] }>("GET", "/posts");
 ```
 
 ## What this package does for you

@@ -27,20 +27,20 @@
  */
 
 // eslint-disable-next-line typescript-eslint/no-deprecated
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   type CallToolResult,
-} from '@modelcontextprotocol/sdk/types.js';
+} from "@modelcontextprotocol/sdk/types.js";
 
-import { parseReadOnlyFlag } from './flags.ts';
-import { INSTRUCTIONS } from './instructions.ts';
-import { getAvailableTools, handleToolCall } from './stdio.ts';
-import { VERSION } from './version.ts';
+import { parseReadOnlyFlag } from "./flags.ts";
+import { INSTRUCTIONS } from "./instructions.ts";
+import { getAvailableTools, handleToolCall } from "./stdio.ts";
+import { VERSION } from "./version.ts";
 
-export { parseReadOnlyFlag } from './flags.ts';
+export { parseReadOnlyFlag } from "./flags.ts";
 
 export interface StdioServerOptions {
   readOnly?: boolean;
@@ -50,7 +50,7 @@ export function createStdioServer(options?: StdioServerOptions): Server {
   const readOnly = options?.readOnly ?? false;
 
   const server = new Server(
-    { name: 'ghost-mcp', version: VERSION },
+    { name: "ghost-mcp", version: VERSION },
     { capabilities: { tools: {} }, instructions: INSTRUCTIONS },
   );
 
@@ -66,7 +66,7 @@ export function createStdioServer(options?: StdioServerOptions): Server {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       return {
-        content: [{ type: 'text' as const, text: `Error: ${message}` }],
+        content: [{ type: "text" as const, text: `Error: ${message}` }],
         structuredContent: { success: false, error: message },
         isError: true,
       };
@@ -80,19 +80,19 @@ export async function startStdioServer(options?: StdioServerOptions): Promise<vo
   const server = createStdioServer(options);
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  const mode = options?.readOnly ? ' (read-only)' : '';
+  const mode = options?.readOnly ? " (read-only)" : "";
   console.error(`Ghost MCP server v${VERSION} running on stdio${mode}`);
 }
 
 const isMainModule =
   import.meta.url === `file://${process.argv[1]}` ||
-  process.argv[1]?.endsWith('/ghost-mcp') ||
-  process.argv[1]?.endsWith('\\ghost-mcp');
+  process.argv[1]?.endsWith("/ghost-mcp") ||
+  process.argv[1]?.endsWith("\\ghost-mcp");
 
 if (isMainModule) {
   const readOnly = parseReadOnlyFlag();
   startStdioServer({ readOnly }).catch((error) => {
-    console.error('Fatal error:', error);
+    console.error("Fatal error:", error);
     process.exit(1);
   });
 }
