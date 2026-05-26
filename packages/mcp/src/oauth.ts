@@ -17,6 +17,7 @@ import { createHash } from "node:crypto";
 
 import { createAuthToken, debugAuth, summarizeSecret } from "./auth.ts";
 import { createAuthCode, decodeAuthCode } from "./crypto.ts";
+import { parseGhostUrlLock } from "./flags.ts";
 
 function baseUrl(event: H3Event): string {
   const host = event.req.headers.get("host") ?? "localhost:3000";
@@ -145,13 +146,13 @@ export const authorizeGetHandler = defineEventHandler((event: H3Event) => {
     state,
     codeChallenge,
     codeChallengeMethod: codeChallengeMethod || "S256",
+    ghostUrlLock: parseGhostUrlLock(),
   });
 });
 
 export const authorizePostHandler = defineEventHandler(async (event: H3Event) => {
   const body = ((await readBody(event)) as Record<string, string>) ?? {};
   const {
-    ghostUrl,
     staffAccessToken,
     contentApiKey,
     redirectUri,
@@ -159,6 +160,11 @@ export const authorizePostHandler = defineEventHandler(async (event: H3Event) =>
     codeChallenge,
     codeChallengeMethod,
   } = body;
+
+  // Server-side enforcement: if GHOST_URL_LOCK is set, always use its value
+  // regardless of what the client submitted, preventing bypass via crafted requests.
+  const ghostUrlLock = parseGhostUrlLock();
+  const ghostUrl = ghostUrlLock ?? body.ghostUrl;
 
   event.res.headers.set("Content-Type", "text/html; charset=utf-8");
 
@@ -186,6 +192,7 @@ export const authorizePostHandler = defineEventHandler(async (event: H3Event) =>
       codeChallenge,
       codeChallengeMethod,
       ghostUrl,
+      ghostUrlLock,
       error: "Ghost site URL and at least one credential are required",
     });
   }
@@ -198,6 +205,7 @@ export const authorizePostHandler = defineEventHandler(async (event: H3Event) =>
       codeChallenge,
       codeChallengeMethod,
       ghostUrl,
+      ghostUrlLock,
       error: "Ghost site URL is not a valid URL",
     });
   }
@@ -322,9 +330,14 @@ function renderLoginForm(params: {
   codeChallenge?: string;
   codeChallengeMethod?: string;
   ghostUrl?: string;
+  /** When set, the Ghost site URL field is pre-filled and locked to this value. */
+  ghostUrlLock?: string;
   error?: string;
 }): string {
-  const { redirectUri, state, codeChallenge, codeChallengeMethod, ghostUrl, error } = params;
+  const { redirectUri, state, codeChallenge, codeChallengeMethod, ghostUrlLock, error } = params;
+  // When locked, always use the lock value for the URL field.
+  const ghostUrl = ghostUrlLock ?? params.ghostUrl;
+  const isLocked = Boolean(ghostUrlLock);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -346,10 +359,12 @@ function renderLoginForm(params: {
     .subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 28px; }
     .error { background: #fee2e2; border: 1px solid #fecaca; color: #dc2626; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
     .notice { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; line-height: 1.4; }
+    .notice-lock { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; line-height: 1.4; }
     .form-group { margin-bottom: 18px; }
     label { display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 6px; }
     input { width: 100%; padding: 11px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; }
     input:focus { outline: none; border-color: #ff1a75; box-shadow: 0 0 0 3px rgba(255,26,117,0.18); }
+    input[readonly] { background: #f3f4f6; color: #6b7280; cursor: default; }
     .help-text { font-size: 12px; color: #6b7280; margin-top: 4px; }
     .help-text a { color: #ff1a75; text-decoration: none; }
     .help-text a:hover { text-decoration: underline; }
@@ -363,8 +378,9 @@ function renderLoginForm(params: {
   <div class="container">
     <div class="logo">Ghost<span>·</span></div>
     <h1>Connect to your Ghost site</h1>
-    <p class="subtitle">Enter your site URL and a Staff Access Token to let Claude work with your blog.</p>
+    <p class="subtitle">${isLocked ? "Enter your Staff Access Token to let Claude work with this Ghost site." : "Enter your site URL and a Staff Access Token to let Claude work with your blog."}</p>
     ${error ? `<div class="error">${escapeHtml(error)}</div>` : ""}
+    ${isLocked ? `<div class="notice-lock">&#128274; This server is restricted to <strong>${escapeHtml(ghostUrlLock!)}</strong>. The Ghost site URL cannot be changed.</div>` : ""}
     <div class="notice">
       <strong>Your credentials are not stored on this server.</strong> They are encrypted into the OAuth code and held by your MCP client (Claude Desktop, claude.ai, etc.).
     </div>
@@ -375,9 +391,9 @@ function renderLoginForm(params: {
       <input type="hidden" name="codeChallengeMethod" value="${escapeHtml(codeChallengeMethod ?? "S256")}">
 
       <div class="form-group">
-        <label for="ghostUrl">Ghost site URL *</label>
-        <input type="url" id="ghostUrl" name="ghostUrl" required value="${escapeHtml(ghostUrl ?? "")}" placeholder="https://my-blog.ghost.io" autocomplete="url">
-        <p class="help-text">The public URL of your Ghost site. No trailing slash.</p>
+        <label for="ghostUrl">Ghost site URL${isLocked ? "" : " *"}</label>
+        <input type="url" id="ghostUrl" name="ghostUrl"${isLocked ? " readonly" : " required"} value="${escapeHtml(ghostUrl ?? "")}" placeholder="https://my-blog.ghost.io" autocomplete="url">
+        <p class="help-text">${isLocked ? "Pre-configured by the server administrator." : "The public URL of your Ghost site. No trailing slash."}</p>
       </div>
 
       <div class="form-group">

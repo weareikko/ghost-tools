@@ -16,3 +16,14 @@ export function parsePublicFlag(): boolean {
 export function parseDualModeFlag(): boolean {
   return process.argv.includes("--dual") || process.env.GHOST_DUAL === "true";
 }
+
+/**
+ * Returns the value of `GHOST_URL_LOCK` if set, otherwise `undefined`.
+ *
+ * When set, the OAuth login form pre-fills the Ghost site URL field with this
+ * value and marks it as read-only, and the `POST /authorize` handler ignores
+ * whatever the client submits for `ghostUrl` and always uses this value instead.
+ */
+export function parseGhostUrlLock(): string | undefined {
+  return process.env.GHOST_URL_LOCK?.trim() || undefined;
+}

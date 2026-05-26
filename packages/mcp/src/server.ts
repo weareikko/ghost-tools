@@ -16,13 +16,19 @@
  *   GHOST_DUAL       - Dual mode: /mcp (public) + /admin/mcp (OAuth admin)
  *   GHOST_URL        - Ghost site URL (required for --public and --dual)
  *   GHOST_CONTENT_KEY- Content API key (required for --public and --dual)
+ *   GHOST_URL_LOCK   - Lock the OAuth login form to a specific Ghost URL
  *   OAUTH_SECRET     - AES-256-GCM key for OAuth tokens. Required in production.
  */
 
 import { toNodeHandler } from "h3/node";
 import { createServer, type Server } from "node:http";
 
-import { parseDualModeFlag, parsePublicFlag, parseReadOnlyFlag } from "./flags.ts";
+import {
+  parseDualModeFlag,
+  parseGhostUrlLock,
+  parsePublicFlag,
+  parseReadOnlyFlag,
+} from "./flags.ts";
 import { createHealthApp, createMcpRequestHandler, type HttpServerOptions } from "./http.ts";
 import { SessionManager } from "./sessions.ts";
 import { VERSION } from "./version.ts";
@@ -191,6 +197,11 @@ export function startHttpServer(
         console.log("OAuth 2.1 (login form):");
         console.log(`  GET  ${base}/authorize`);
         console.log(`  POST ${base}/token`);
+        const urlLock = parseGhostUrlLock();
+        if (urlLock) {
+          console.log("");
+          console.log(`Ghost URL lock: ${urlLock} (login form is restricted to this site)`);
+        }
         if (readOnly) {
           console.log("");
           console.log("Mode: READ-ONLY (write operations disabled)");

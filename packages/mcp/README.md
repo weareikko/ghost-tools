@@ -94,6 +94,19 @@ The server is stateless — credentials are AES-256-GCM-encrypted into the OAuth
 authorization code, then base64url-encoded into the access token the MCP client
 holds and sends as `Authorization: Bearer <token>` on each call.
 
+#### Locking the Ghost URL
+
+When deploying for a single known Ghost instance, set `GHOST_URL_LOCK` to
+pre-fill the login form's Ghost site URL and make it read-only. Users only need
+to enter their Staff Access Token. The lock is also enforced server-side —
+crafted POST requests cannot bypass it.
+
+```bash
+GHOST_URL_LOCK=https://my-blog.ghost.io \
+OAUTH_SECRET=$(openssl rand -hex 32) \
+npx ghost-mcp-server
+```
+
 ### HTTP — Public content mode
 
 No authentication. Pre-configured at startup for a single Ghost site. Exposes
@@ -132,16 +145,17 @@ protected resource so MCP clients discover the correct OAuth flow. The public
 
 ## Environment variables
 
-| Variable            | Description                                             | Required    |
-| ------------------- | ------------------------------------------------------- | ----------- |
-| `GHOST_URL`         | Ghost site URL (no trailing slash)                      | public/dual |
-| `GHOST_CONTENT_KEY` | Content API key (26-char hex from a Custom Integration) | public/dual |
-| `OAUTH_SECRET`      | 64-char hex AES-256-GCM key for OAuth token encryption  | HTTP admin  |
-| `PORT`              | HTTP listen port (default `3000`)                       | —           |
-| `HOST`              | HTTP bind address (default `0.0.0.0`)                   | —           |
-| `GHOST_READ_ONLY`   | Set `true` to disable `ghost_write`                     | —           |
-| `GHOST_PUBLIC`      | Set `true` to enable public content mode                | —           |
-| `GHOST_DUAL`        | Set `true` to enable dual mode                          | —           |
+| Variable            | Description                                                                          | Required    |
+| ------------------- | ------------------------------------------------------------------------------------ | ----------- |
+| `GHOST_URL`         | Ghost site URL (no trailing slash)                                                   | public/dual |
+| `GHOST_CONTENT_KEY` | Content API key (26-char hex from a Custom Integration)                              | public/dual |
+| `OAUTH_SECRET`      | 64-char hex AES-256-GCM key for OAuth token encryption                               | HTTP admin  |
+| `PORT`              | HTTP listen port (default `3000`)                                                    | —           |
+| `HOST`              | HTTP bind address (default `0.0.0.0`)                                                | —           |
+| `GHOST_READ_ONLY`   | Set `true` to disable `ghost_write`                                                  | —           |
+| `GHOST_PUBLIC`      | Set `true` to enable public content mode                                             | —           |
+| `GHOST_DUAL`        | Set `true` to enable dual mode                                                       | —           |
+| `GHOST_URL_LOCK`    | Lock the OAuth login form to a specific Ghost URL; field is pre-filled and read-only | —           |
 
 `--public` and `--dual` are mutually exclusive. Using both exits with an error.
 

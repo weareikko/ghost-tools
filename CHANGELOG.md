@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.1.3] — 2026-05-26
+
+### Added
+
+#### `@ikko-dev/ghost-mcp`
+
+- **`GHOST_URL_LOCK` environment variable** — when set, the OAuth login form
+  pre-fills the Ghost site URL field with the configured value and renders it as
+  `readonly`, so users only need to supply their Staff Access Token. The lock is
+  also enforced server-side on `POST /authorize`: the submitted `ghostUrl` is
+  silently replaced with the lock value, preventing bypass via crafted requests.
+
+  ```bash
+  GHOST_URL_LOCK=https://my-blog.ghost.io \
+  OAUTH_SECRET=$(openssl rand -hex 32) \
+  npx ghost-mcp-server
+  ```
+
+- **`parseGhostUrlLock()`** — exported from `@ikko-dev/ghost-mcp`, reads
+  `GHOST_URL_LOCK` from the environment and returns it trimmed, or `undefined`
+  if unset or empty.
+
+---
+
 ## [0.1.2] — 2026-05-26
 
 ### Added
