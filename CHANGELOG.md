@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased]
+## [0.1.2] — 2026-05-26
 
 ### Added
 
@@ -76,6 +76,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `protectedResourceHandler` (the named export) is now a default instance of the
   new factory (`createProtectedResourceHandler()`), maintaining backward
   compatibility.
+
+### Fixed
+
+- **`h3` upgraded to `2.0.1-rc.22`** — resolves four CVEs (SSE event injection,
+  middleware bypass, timing discrepancy in basic auth, unbounded chunked cookie DoS).
+- **Publish workflow** — upgraded to `actions/setup-node@v6` (fixes `ENEEDAUTH`
+  caused by `v4` writing an empty auth token to `.npmrc`); added
+  `environment: production` to match npm trusted publisher configuration; removed
+  now-unnecessary `NODE_AUTH_TOKEN` from publish steps.
 
 ---
 
