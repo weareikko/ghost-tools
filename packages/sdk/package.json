@@ -1,6 +1,6 @@
 {
   "name": "@ikko-dev/ghost-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Fluent TypeScript SDK for the Ghost CMS API",
   "keywords": [
     "cms",
