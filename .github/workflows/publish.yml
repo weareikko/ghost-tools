@@ -74,6 +74,28 @@ jobs:
       - name: Sync inter-package versions
         run: node scripts/sync-versions.js
 
+      - name: Check versions are unpublished
+        run: |
+          PACKAGES=(
+            "@ikko-dev/ghost-api"
+            "@ikko-dev/ghost-core"
+            "@ikko-dev/ghost-sdk"
+            "@ikko-dev/ghost-mcp"
+          )
+          ALREADY_PUBLISHED=()
+          for PKG in "${PACKAGES[@]}"; do
+            if npm view "${PKG}@${VERSION}" version &>/dev/null; then
+              ALREADY_PUBLISHED+=("$PKG@$VERSION")
+            fi
+          done
+          if [ ${#ALREADY_PUBLISHED[@]} -gt 0 ]; then
+            echo "The following versions are already published on npm:"
+            for P in "${ALREADY_PUBLISHED[@]}"; do echo "  - $P"; done
+            echo "Bump the version before re-running publish."
+            exit 1
+          fi
+          echo "All packages at $VERSION are unpublished — proceeding."
+
       - name: Publish @ikko-dev/ghost-api
         run: npm publish --provenance --access public --tag ${{ env.NPM_TAG }}
         working-directory: packages/api
