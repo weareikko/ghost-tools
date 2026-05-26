@@ -1,15 +1,10 @@
 /**
  * Authentication for the Ghost MCP HTTP server.
  *
- * The Bearer token is `base64({ghostUrl}:{staffAccessToken}[:{contentApiKey}])`
- * — a simple stateless format that lets us hold both an Admin API credential
- * and an optional Content API key.
+ * The Bearer token is `base64url(JSON.stringify({ ghostUrl, staffAccessToken, contentApiKey }))`.
  *
- * Two encoded forms are supported, mirroring forge-tools / productive-tools:
- *
- *  1. **Plain base64(`url:token[:contentKey]`)** — the form built by `createAuthToken`.
- *  2. **Base64-encoded JSON** — `base64(JSON.stringify({ ghostUrl, staffAccessToken, contentApiKey }))`,
- *     used when extra fields need to be carried.
+ * This stateless format lets the MCP client hold both an Admin API credential and
+ * an optional Content API key without server-side storage.
  */
 
 export interface GhostCredentials {
@@ -21,15 +16,14 @@ export interface GhostCredentials {
   contentApiKey?: string;
 }
 
-function tryDecodeBase64(token: string): string | null {
-  // Buffer.from('xxx', 'base64') never throws — it silently drops invalid chars.
-  const decoded = Buffer.from(token, 'base64').toString('utf-8');
+function tryDecodeBase64Url(token: string): string | null {
+  // Buffer.from('xxx', 'base64url') never throws — it silently drops invalid chars.
+  const decoded = Buffer.from(token, 'base64url').toString('utf-8');
   if (!decoded || decoded === token) return null;
-  // Roundtrip check — if it re-encodes back to the input, it was genuine base64
-  const re = Buffer.from(decoded).toString('base64');
-  // Strip padding for the comparison so both `abc=` and `abc` match
-  const stripPad = (s: string) => s.replace(/=+$/, '');
-  if (stripPad(re) === stripPad(token)) return decoded;
+
+  // Roundtrip check — if it re-encodes back to the input, it was genuine base64url.
+  const re = Buffer.from(decoded).toString('base64url');
+  if (re === token) return decoded;
   return null;
 }
 
@@ -55,35 +49,6 @@ function tryParseJsonCredentials(decoded: string): GhostCredentials | null {
   return null;
 }
 
-function tryParseColonCredentials(decoded: string): GhostCredentials | null {
-  // Format: ghostUrl:staffAccessToken[:contentApiKey]
-  // Watch out: ghostUrl contains `https://` which itself contains `:` after http(s).
-  // So we look for the URL prefix and split the rest carefully.
-  const match = decoded.match(/^(https?:\/\/[^\s:]+):(.+)$/);
-  if (!match) return null;
-
-  const ghostUrl = match[1];
-  const remainder = match[2];
-
-  // The staff access token has format `id:hexSecret` so it contains exactly one `:`.
-  // If there are 4+ colons after the URL prefix, the last segment is the content key.
-  // We treat the last colon-separated chunk as the content key only when there are 3 segments.
-  const segments = remainder.split(':');
-  if (segments.length === 2) {
-    return { ghostUrl, staffAccessToken: remainder };
-  }
-  if (segments.length === 3) {
-    // id:secret:contentKey
-    return {
-      ghostUrl,
-      staffAccessToken: `${segments[0]}:${segments[1]}`,
-      contentApiKey: segments[2],
-    };
-  }
-  // 1 segment → no token. Reject.
-  return null;
-}
-
 /**
  * Parse the `Authorization: Bearer <token>` header into credentials.
  *
@@ -93,18 +58,18 @@ export function parseAuthHeader(authHeader: string | undefined | null): GhostCre
   if (!authHeader) return null;
   const match = authHeader.match(/^Bearer\s+(.+)$/i);
   if (!match) return null;
-  const token = match[1].trim();
+  let token: string;
+  try {
+    token = decodeURIComponent(match[1].trim());
+  } catch {
+    return null;
+  }
   if (!token) return null;
 
-  const decoded = tryDecodeBase64(token);
+  const decoded = tryDecodeBase64Url(token);
   if (!decoded) return null;
 
-  // Prefer JSON if it looks like an object, otherwise try the colon format
-  if (decoded.startsWith('{')) {
-    const jsonCreds = tryParseJsonCredentials(decoded);
-    if (jsonCreds) return jsonCreds;
-  }
-  return tryParseColonCredentials(decoded);
+  return tryParseJsonCredentials(decoded);
 }
 
 /**
@@ -116,12 +81,5 @@ export function createAuthToken(credentials: GhostCredentials): string {
   if (!credentials.staffAccessToken && !credentials.contentApiKey) {
     throw new Error('createAuthToken requires either staffAccessToken or contentApiKey.');
   }
-  if (credentials.contentApiKey && !credentials.staffAccessToken) {
-    // No staff token — fall back to JSON form so the content key is preserved.
-    return Buffer.from(JSON.stringify(credentials)).toString('base64');
-  }
-  // Simple colon form, optionally extended with content key.
-  const parts = [credentials.ghostUrl, credentials.staffAccessToken];
-  if (credentials.contentApiKey) parts.push(credentials.contentApiKey);
-  return Buffer.from(parts.join(':')).toString('base64');
+  return Buffer.from(JSON.stringify(credentials)).toString('base64url');
 }

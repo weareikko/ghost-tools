@@ -8,19 +8,7 @@ describe('parseAuthHeader', () => {
     expect(parseAuthHeader('Basic xxx')).toBeNull();
   });
 
-  it('parses base64(url:id:secret) format', () => {
-    const token = createAuthToken({
-      ghostUrl: 'https://x.ghost.io',
-      staffAccessToken: 'myid:cafebabe',
-    });
-    const result = parseAuthHeader(`Bearer ${token}`);
-    expect(result).toEqual({
-      ghostUrl: 'https://x.ghost.io',
-      staffAccessToken: 'myid:cafebabe',
-    });
-  });
-
-  it('parses base64(url:id:secret:contentKey) format', () => {
+  it('parses base64url(JSON) format', () => {
     const token = createAuthToken({
       ghostUrl: 'https://x.ghost.io',
       staffAccessToken: 'myid:cafebabe',
@@ -34,7 +22,7 @@ describe('parseAuthHeader', () => {
     });
   });
 
-  it('parses base64(JSON) format (content-only)', () => {
+  it('parses content-only credentials', () => {
     const token = createAuthToken({
       ghostUrl: 'https://x.ghost.io',
       contentApiKey: 'abc123',
@@ -43,11 +31,35 @@ describe('parseAuthHeader', () => {
     expect(result).toEqual({
       ghostUrl: 'https://x.ghost.io',
       contentApiKey: 'abc123',
+    });
+  });
+
+  it('parses URL-encoded bearer tokens', () => {
+    const token = createAuthToken({
+      ghostUrl: 'https://x.ghost.io',
+      staffAccessToken: 'myid:cafebabe',
+    });
+    const result = parseAuthHeader(`Bearer ${encodeURIComponent(token)}`);
+    expect(result).toEqual({
+      ghostUrl: 'https://x.ghost.io',
+      staffAccessToken: 'myid:cafebabe',
+    });
+  });
+
+  it('supports Ghost URLs with ports', () => {
+    const token = createAuthToken({
+      ghostUrl: 'http://localhost:2368',
+      staffAccessToken: 'myid:cafebabe',
+    });
+    const result = parseAuthHeader(`Bearer ${token}`);
+    expect(result).toEqual({
+      ghostUrl: 'http://localhost:2368',
+      staffAccessToken: 'myid:cafebabe',
     });
   });
 
   it('returns null for malformed payloads', () => {
-    const bad = Buffer.from('not-a-url-here').toString('base64');
+    const bad = Buffer.from('not-json').toString('base64url');
     expect(parseAuthHeader(`Bearer ${bad}`)).toBeNull();
   });
 });

@@ -75,8 +75,8 @@ client redirects to `/authorize`, where the user enters:
 
 The server is stateless: nothing is stored on disk. The user's credentials are
 AES-256-GCM-encrypted into the OAuth authorization code, then turned into a
-base64-encoded access token that the MCP client holds locally and sends as
-`Authorization: Bearer <token>` on each call.
+base64url-encoded JSON access token that the MCP client holds locally and sends
+as `Authorization: Bearer <token>` on each call.
 
 ## Architecture
 

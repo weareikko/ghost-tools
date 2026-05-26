@@ -9,7 +9,7 @@
  *   2. User submits the login form (ghost URL + staff access token + optional content key)
  *   3. Server encrypts credentials + challenge into an authorization code, redirects back
  *   4. Client exchanges code for access token at /token (with code_verifier)
- *   5. Server validates PKCE, returns base64-encoded credentials as access_token
+ *   5. Server validates PKCE, returns base64url(JSON credentials) as access_token
  */
 
 import { defineEventHandler, getQuery, readBody, type H3Event } from 'h3';
