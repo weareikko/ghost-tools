@@ -44,6 +44,16 @@ export function startHttpServer(
 
     const server = createServer(async (req, res) => {
       const url = req.url ?? '/';
+      const start = Date.now();
+      const auth = req.headers.authorization ? '+auth' : '';
+      const ua = (req.headers['user-agent'] ?? '').slice(0, 40);
+      const log = () => {
+        console.log(
+          `[req] ${req.method} ${url} -> ${res.statusCode} ${auth} ua="${ua}" (${Date.now() - start}ms)`,
+        );
+      };
+      // eslint-disable-next-line unicorn/prefer-add-event-listener -- consistent with other Node http style
+      res.on('finish', log);
       if (url === '/mcp' || url.startsWith('/mcp?')) {
         await handleMcp(req, res);
         return;
