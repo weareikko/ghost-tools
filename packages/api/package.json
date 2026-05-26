@@ -1,6 +1,6 @@
 {
   "name": "@ikko-dev/ghost-api",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Ghost CMS API client — HTTP wrapper, JWT signing, types",
   "keywords": [
     "api",

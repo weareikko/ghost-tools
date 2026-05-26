@@ -1,6 +1,6 @@
 {
   "name": "@ikko-dev/ghost-tools",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Ghost CMS tools - SDK and MCP server for AI agents and humans",
   "keywords": [

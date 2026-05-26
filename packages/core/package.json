@@ -1,6 +1,6 @@
 {
   "name": "@ikko-dev/ghost-core",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Shared business logic for Ghost CMS tools — executors, routes, context",
   "keywords": [
     "api",
