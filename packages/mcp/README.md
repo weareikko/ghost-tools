@@ -36,9 +36,24 @@ ghost_write(resource, action, payload?, ...)
 
 ### Resources
 
-`posts`, `pages`, `tags`, `members`, `tiers`, `newsletters`, `offers`, `users`,
-`roles`, `invites`, `webhooks`, `images`, `themes`, `site`, `settings`,
-`authors` (Content API).
+| Resource      | API             | `ghost` | `ghost_write` |
+| ------------- | --------------- | :-----: | :-----------: |
+| `posts`       | Admin + Content |    ✓    |       ✓       |
+| `pages`       | Admin + Content |    ✓    |       ✓       |
+| `tags`        | Admin + Content |    ✓    |       ✓       |
+| `tiers`       | Admin + Content |    ✓    |       ✓       |
+| `authors`     | Content only    |    ✓    |       —       |
+| `members`     | Admin           |    ✓    |       ✓       |
+| `newsletters` | Admin           |    ✓    |       ✓       |
+| `offers`      | Admin           |    ✓    |       ✓       |
+| `users`       | Admin           |    ✓    |       ✓       |
+| `roles`       | Admin           |    ✓    |       —       |
+| `invites`     | Admin           |    ✓    |       ✓       |
+| `webhooks`    | Admin           |    —    |       ✓       |
+| `images`      | Admin           |    —    |       ✓       |
+| `themes`      | Admin           |    —    |       ✓       |
+| `site`        | Admin           |    ✓    |       —       |
+| `settings`    | Admin           |    ✓    |       ✓       |
 
 ## Run modes
 
@@ -60,32 +75,93 @@ ghost_write(resource, action, payload?, ...)
 
 Pass `--read-only` (or set `GHOST_READ_ONLY=true`) to disable `ghost_write`.
 
-### HTTP (claude.ai, remote MCP clients)
+### HTTP — Admin mode (OAuth 2.1)
+
+The default HTTP mode. Users authenticate via a login form at `/authorize`.
 
 ```bash
 PORT=3000 OAUTH_SECRET=$(openssl rand -hex 32) npx ghost-mcp-server
 ```
 
-Then point your MCP client at `http://localhost:3000/mcp`. On first connect the
-client redirects to `/authorize`, where the user enters:
+Point your MCP client at `http://localhost:3000/mcp`. On first connect the
+client is redirected to `/authorize`, where the user enters:
 
 - **Ghost site URL** — `https://my-blog.ghost.io`
 - **Staff Access Token** — `id:hex-secret` from a Custom Integration
-- **Content API key** _(optional)_ — to use the Content API for authors
+- **Content API key** _(optional)_ — only needed for `authors`
 
-The server is stateless: nothing is stored on disk. The user's credentials are
-AES-256-GCM-encrypted into the OAuth authorization code, then turned into a
-base64url-encoded JSON access token that the MCP client holds locally and sends
-as `Authorization: Bearer <token>` on each call.
+The server is stateless — credentials are AES-256-GCM-encrypted into the OAuth
+authorization code, then base64url-encoded into the access token the MCP client
+holds and sends as `Authorization: Bearer <token>` on each call.
+
+### HTTP — Public content mode
+
+No authentication. Pre-configured at startup for a single Ghost site. Exposes
+`posts`, `pages`, `tags`, `tiers`, `authors` via the Ghost Content API. Only
+browse/read operations are available; `ghost_write` is not registered.
+
+```bash
+GHOST_URL=https://my-blog.ghost.io \
+GHOST_CONTENT_KEY=<26-char-hex> \
+npx ghost-mcp-server --public
+# or: GHOST_PUBLIC=true
+```
+
+Point public or unauthenticated clients at `http://localhost:3000/mcp`.
+
+### HTTP — Dual mode (public + admin on one server)
+
+Serves both endpoints from a single process:
+
+| Path         | Auth          | Resources                       |
+| ------------ | ------------- | ------------------------------- |
+| `/mcp`       | None (public) | Content API only                |
+| `/admin/mcp` | OAuth 2.1     | All resources (admin + content) |
+
+```bash
+GHOST_URL=https://my-blog.ghost.io \
+GHOST_CONTENT_KEY=<26-char-hex> \
+OAUTH_SECRET=$(openssl rand -hex 32) \
+npx ghost-mcp-server --dual
+# or: GHOST_DUAL=true
+```
+
+`/.well-known/oauth-protected-resource` advertises `/admin/mcp` as the
+protected resource so MCP clients discover the correct OAuth flow. The public
+`/mcp` endpoint returns no OAuth headers — clients connect directly.
+
+## Environment variables
+
+| Variable            | Description                                             | Required    |
+| ------------------- | ------------------------------------------------------- | ----------- |
+| `GHOST_URL`         | Ghost site URL (no trailing slash)                      | public/dual |
+| `GHOST_CONTENT_KEY` | Content API key (26-char hex from a Custom Integration) | public/dual |
+| `OAUTH_SECRET`      | 64-char hex AES-256-GCM key for OAuth token encryption  | HTTP admin  |
+| `PORT`              | HTTP listen port (default `3000`)                       | —           |
+| `HOST`              | HTTP bind address (default `0.0.0.0`)                   | —           |
+| `GHOST_READ_ONLY`   | Set `true` to disable `ghost_write`                     | —           |
+| `GHOST_PUBLIC`      | Set `true` to enable public content mode                | —           |
+| `GHOST_DUAL`        | Set `true` to enable dual mode                          | —           |
+
+`--public` and `--dual` are mutually exclusive. Using both exits with an error.
 
 ## Architecture
 
 ```
 stdio.ts ─┐
           ├─→ handlers.ts ─→ @ikko-dev/ghost-core executors ─→ @ikko-dev/ghost-api
-http.ts ──┘                      ↑
-                                 │
+http.ts ──┘     ↑
+                │ (publicMode → dispatchContent → CONTENT_ROUTES)
 oauth.ts (login form)   sessions.ts (per-session transport+server)
 ```
+
+### Content API dispatch
+
+When the server runs in public or dual mode, `executeToolWithCredentials` receives
+`publicMode = true` and routes all calls through `dispatchContent` instead of the
+normal admin `dispatch`. `dispatchContent` accepts only `CONTENT_RESOURCES`
+(`posts`, `pages`, `tags`, `tiers`, `authors`) and only `browse`/`read` actions,
+hitting `CONTENT_ROUTES` (paths identical to admin routes, but with `api: 'content'`
+so `GhostHttpClient` appends `?key=<contentApiKey>` instead of a JWT).
 
 This mirrors `@studiometa/forge-tools` and `@studiometa/productive-tools`.
