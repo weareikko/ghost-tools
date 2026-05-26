@@ -1,10 +1,10 @@
-import type { Role, User } from '@ikko-dev/ghost-api';
-import { unwrapMany, unwrapOne, wrapForWrite } from '@ikko-dev/ghost-api';
+import type { Role, User } from "@ikko-dev/ghost-api";
+import { unwrapMany, unwrapOne, wrapForWrite } from "@ikko-dev/ghost-api";
 
-import type { ExecutorContext, ExecutorResult } from '../context.ts';
-import { ROUTES, request } from '../routes.ts';
-import type { BrowseOptions, ReadOptions } from './types.ts';
-import { browseQuery, readQuery } from './types.ts';
+import type { ExecutorContext, ExecutorResult } from "../context.ts";
+import { ROUTES, request } from "../routes.ts";
+import type { BrowseOptions, ReadOptions } from "./types.ts";
+import { browseQuery, readQuery } from "./types.ts";
 
 interface UsersEnvelope {
   users: User[];
@@ -18,10 +18,15 @@ export async function browseUsers(
   options: BrowseOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<{ users: User[]; meta?: unknown }>> {
-  const response = await request<UsersEnvelope>(ROUTES.users.browse, ctx, {}, {
-    query: browseQuery(options),
-  });
-  return { data: { users: unwrapMany<User>(response, 'users'), meta: response.meta } };
+  const response = await request<UsersEnvelope>(
+    ROUTES.users.browse,
+    ctx,
+    {},
+    {
+      query: browseQuery(options),
+    },
+  );
+  return { data: { users: unwrapMany<User>(response, "users"), meta: response.meta } };
 }
 
 export async function readUser(
@@ -29,14 +34,14 @@ export async function readUser(
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<User | undefined>> {
   if (!options.slug && !options.id) {
-    throw new Error('readUser requires id or slug.');
+    throw new Error("readUser requires id or slug.");
   }
   const route = options.slug ? ROUTES.users.readBySlug : ROUTES.users.read;
-  const params = options.slug ? { slug: options.slug } : { id: options.id ?? '' };
+  const params = options.slug ? { slug: options.slug } : { id: options.id ?? "" };
   const response = await request<UsersEnvelope>(route, ctx, params, {
     query: readQuery(options),
   });
-  return { data: unwrapOne<User>(response, 'users') };
+  return { data: unwrapOne<User>(response, "users") };
 }
 
 export interface EditUserOptions extends Partial<User> {
@@ -48,10 +53,15 @@ export async function editUser(
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<User | undefined>> {
   const { id, ...body } = options;
-  const response = await request<UsersEnvelope>(ROUTES.users.edit, ctx, { id }, {
-    body: wrapForWrite('users', body),
-  });
-  return { data: unwrapOne<User>(response, 'users') };
+  const response = await request<UsersEnvelope>(
+    ROUTES.users.edit,
+    ctx,
+    { id },
+    {
+      body: wrapForWrite("users", body),
+    },
+  );
+  return { data: unwrapOne<User>(response, "users") };
 }
 
 export async function deleteUser(
@@ -67,5 +77,5 @@ export async function browseRoles(
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Role[]>> {
   const response = await request<RolesEnvelope>(ROUTES.roles.browse, ctx);
-  return { data: unwrapMany<Role>(response, 'roles') };
+  return { data: unwrapMany<Role>(response, "roles") };
 }

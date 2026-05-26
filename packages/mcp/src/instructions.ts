@@ -4,6 +4,32 @@
  * These give the LLM a high-level guide on how to use the Ghost MCP tools.
  */
 
+/**
+ * Instructions for the public content mode — no auth, Content API only.
+ */
+export const PUBLIC_INSTRUCTIONS = `# Ghost CMS MCP Server — Public Content Mode
+
+Browse published Ghost content through the **\`ghost\`** tool.
+
+## Available Resources
+
+\`posts\`, \`pages\`, \`tags\`, \`tiers\`, \`authors\`
+
+All resources are served from the Ghost Content API — only published,
+public-facing content is accessible.
+
+## Actions
+
+\`browse\`, \`read\`, \`help\`, \`schema\`
+
+## Tips
+
+- Use \`action="help"\` with any resource for field documentation.
+- Filtering uses Ghost's NQL: e.g. \`filter="tag:news"\`.
+- Browse returns paginated results; use \`limit\` and \`page\` to navigate.
+- Admin resources (members, users, settings, etc.) are not available in this mode.
+`;
+
 export const INSTRUCTIONS = `# Ghost CMS MCP Server
 
 Talk to a Ghost blog through two tools:

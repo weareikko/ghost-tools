@@ -1,4 +1,4 @@
-import type { Meta } from './types.ts';
+import type { Meta } from "./types.ts";
 
 /**
  * Pull the first item out of a Ghost envelope.
@@ -12,7 +12,7 @@ import type { Meta } from './types.ts';
  * passed without ceremony.
  */
 export function unwrapOne<T>(envelope: unknown, key: string): T | undefined {
-  if (envelope && typeof envelope === 'object') {
+  if (envelope && typeof envelope === "object") {
     const arr = (envelope as Record<string, unknown>)[key];
     if (Array.isArray(arr) && arr.length > 0) {
       return arr[0] as T;
@@ -25,7 +25,7 @@ export function unwrapOne<T>(envelope: unknown, key: string): T | undefined {
  * Pull the full array out of a Ghost envelope.
  */
 export function unwrapMany<T>(envelope: unknown, key: string): T[] {
-  if (envelope && typeof envelope === 'object') {
+  if (envelope && typeof envelope === "object") {
     const arr = (envelope as Record<string, unknown>)[key];
     if (Array.isArray(arr)) return arr as T[];
   }
@@ -33,7 +33,7 @@ export function unwrapMany<T>(envelope: unknown, key: string): T[] {
 }
 
 export function extractMeta(envelope: unknown): Meta | undefined {
-  if (envelope && typeof envelope === 'object') {
+  if (envelope && typeof envelope === "object") {
     return (envelope as { meta?: Meta }).meta;
   }
   return undefined;

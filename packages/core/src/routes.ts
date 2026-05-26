@@ -7,12 +7,12 @@
  * `:id` and `:slug` placeholders are replaced by `buildPath`.
  */
 
-import type { GhostHttpClient } from '@ikko-dev/ghost-api';
+import type { GhostHttpClient } from "@ikko-dev/ghost-api";
 
-import type { ExecutorContext } from './context.ts';
+import type { ExecutorContext } from "./context.ts";
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-export type ApiKind = 'admin' | 'content';
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+export type ApiKind = "admin" | "content";
 
 export interface RouteDefinition {
   method: HttpMethod;
@@ -28,95 +28,123 @@ export type RouteParams = Record<string, string | number | undefined>;
 
 export const ROUTES = {
   posts: {
-    browse: { method: 'GET', path: '/posts', api: 'admin' },
-    read: { method: 'GET', path: '/posts/:id', api: 'admin' },
-    readBySlug: { method: 'GET', path: '/posts/slug/:slug', api: 'admin' },
-    add: { method: 'POST', path: '/posts', api: 'admin' },
-    edit: { method: 'PUT', path: '/posts/:id', api: 'admin' },
-    delete: { method: 'DELETE', path: '/posts/:id', api: 'admin' },
-    copy: { method: 'POST', path: '/posts/:id/copy', api: 'admin' },
+    browse: { method: "GET", path: "/posts", api: "admin" },
+    read: { method: "GET", path: "/posts/:id", api: "admin" },
+    readBySlug: { method: "GET", path: "/posts/slug/:slug", api: "admin" },
+    add: { method: "POST", path: "/posts", api: "admin" },
+    edit: { method: "PUT", path: "/posts/:id", api: "admin" },
+    delete: { method: "DELETE", path: "/posts/:id", api: "admin" },
+    copy: { method: "POST", path: "/posts/:id/copy", api: "admin" },
   },
   pages: {
-    browse: { method: 'GET', path: '/pages', api: 'admin' },
-    read: { method: 'GET', path: '/pages/:id', api: 'admin' },
-    readBySlug: { method: 'GET', path: '/pages/slug/:slug', api: 'admin' },
-    add: { method: 'POST', path: '/pages', api: 'admin' },
-    edit: { method: 'PUT', path: '/pages/:id', api: 'admin' },
-    delete: { method: 'DELETE', path: '/pages/:id', api: 'admin' },
-    copy: { method: 'POST', path: '/pages/:id/copy', api: 'admin' },
+    browse: { method: "GET", path: "/pages", api: "admin" },
+    read: { method: "GET", path: "/pages/:id", api: "admin" },
+    readBySlug: { method: "GET", path: "/pages/slug/:slug", api: "admin" },
+    add: { method: "POST", path: "/pages", api: "admin" },
+    edit: { method: "PUT", path: "/pages/:id", api: "admin" },
+    delete: { method: "DELETE", path: "/pages/:id", api: "admin" },
+    copy: { method: "POST", path: "/pages/:id/copy", api: "admin" },
   },
   tags: {
-    browse: { method: 'GET', path: '/tags', api: 'admin' },
-    read: { method: 'GET', path: '/tags/:id', api: 'admin' },
-    readBySlug: { method: 'GET', path: '/tags/slug/:slug', api: 'admin' },
-    add: { method: 'POST', path: '/tags', api: 'admin' },
-    edit: { method: 'PUT', path: '/tags/:id', api: 'admin' },
-    delete: { method: 'DELETE', path: '/tags/:id', api: 'admin' },
+    browse: { method: "GET", path: "/tags", api: "admin" },
+    read: { method: "GET", path: "/tags/:id", api: "admin" },
+    readBySlug: { method: "GET", path: "/tags/slug/:slug", api: "admin" },
+    add: { method: "POST", path: "/tags", api: "admin" },
+    edit: { method: "PUT", path: "/tags/:id", api: "admin" },
+    delete: { method: "DELETE", path: "/tags/:id", api: "admin" },
   },
   members: {
-    browse: { method: 'GET', path: '/members', api: 'admin' },
-    read: { method: 'GET', path: '/members/:id', api: 'admin' },
-    add: { method: 'POST', path: '/members', api: 'admin' },
-    edit: { method: 'PUT', path: '/members/:id', api: 'admin' },
+    browse: { method: "GET", path: "/members", api: "admin" },
+    read: { method: "GET", path: "/members/:id", api: "admin" },
+    add: { method: "POST", path: "/members", api: "admin" },
+    edit: { method: "PUT", path: "/members/:id", api: "admin" },
   },
   tiers: {
-    browse: { method: 'GET', path: '/tiers', api: 'admin' },
-    read: { method: 'GET', path: '/tiers/:id', api: 'admin' },
-    add: { method: 'POST', path: '/tiers', api: 'admin' },
-    edit: { method: 'PUT', path: '/tiers/:id', api: 'admin' },
+    browse: { method: "GET", path: "/tiers", api: "admin" },
+    read: { method: "GET", path: "/tiers/:id", api: "admin" },
+    add: { method: "POST", path: "/tiers", api: "admin" },
+    edit: { method: "PUT", path: "/tiers/:id", api: "admin" },
   },
   newsletters: {
-    browse: { method: 'GET', path: '/newsletters', api: 'admin' },
-    read: { method: 'GET', path: '/newsletters/:id', api: 'admin' },
-    add: { method: 'POST', path: '/newsletters', api: 'admin' },
-    edit: { method: 'PUT', path: '/newsletters/:id', api: 'admin' },
+    browse: { method: "GET", path: "/newsletters", api: "admin" },
+    read: { method: "GET", path: "/newsletters/:id", api: "admin" },
+    add: { method: "POST", path: "/newsletters", api: "admin" },
+    edit: { method: "PUT", path: "/newsletters/:id", api: "admin" },
   },
   offers: {
-    browse: { method: 'GET', path: '/offers', api: 'admin' },
-    read: { method: 'GET', path: '/offers/:id', api: 'admin' },
-    add: { method: 'POST', path: '/offers', api: 'admin' },
-    edit: { method: 'PUT', path: '/offers/:id', api: 'admin' },
+    browse: { method: "GET", path: "/offers", api: "admin" },
+    read: { method: "GET", path: "/offers/:id", api: "admin" },
+    add: { method: "POST", path: "/offers", api: "admin" },
+    edit: { method: "PUT", path: "/offers/:id", api: "admin" },
   },
   users: {
-    browse: { method: 'GET', path: '/users', api: 'admin' },
-    read: { method: 'GET', path: '/users/:id', api: 'admin' },
-    readBySlug: { method: 'GET', path: '/users/slug/:slug', api: 'admin' },
-    edit: { method: 'PUT', path: '/users/:id', api: 'admin' },
-    delete: { method: 'DELETE', path: '/users/:id', api: 'admin' },
+    browse: { method: "GET", path: "/users", api: "admin" },
+    read: { method: "GET", path: "/users/:id", api: "admin" },
+    readBySlug: { method: "GET", path: "/users/slug/:slug", api: "admin" },
+    edit: { method: "PUT", path: "/users/:id", api: "admin" },
+    delete: { method: "DELETE", path: "/users/:id", api: "admin" },
   },
   roles: {
-    browse: { method: 'GET', path: '/roles', api: 'admin' },
+    browse: { method: "GET", path: "/roles", api: "admin" },
   },
   invites: {
-    browse: { method: 'GET', path: '/invites', api: 'admin' },
-    read: { method: 'GET', path: '/invites/:id', api: 'admin' },
-    add: { method: 'POST', path: '/invites', api: 'admin' },
-    delete: { method: 'DELETE', path: '/invites/:id', api: 'admin' },
+    browse: { method: "GET", path: "/invites", api: "admin" },
+    read: { method: "GET", path: "/invites/:id", api: "admin" },
+    add: { method: "POST", path: "/invites", api: "admin" },
+    delete: { method: "DELETE", path: "/invites/:id", api: "admin" },
   },
   webhooks: {
-    add: { method: 'POST', path: '/webhooks', api: 'admin' },
-    edit: { method: 'PUT', path: '/webhooks/:id', api: 'admin' },
-    delete: { method: 'DELETE', path: '/webhooks/:id', api: 'admin' },
+    add: { method: "POST", path: "/webhooks", api: "admin" },
+    edit: { method: "PUT", path: "/webhooks/:id", api: "admin" },
+    delete: { method: "DELETE", path: "/webhooks/:id", api: "admin" },
   },
   images: {
-    upload: { method: 'POST', path: '/images/upload', api: 'admin' },
+    upload: { method: "POST", path: "/images/upload", api: "admin" },
   },
   themes: {
-    upload: { method: 'POST', path: '/themes/upload', api: 'admin' },
-    activate: { method: 'PUT', path: '/themes/:name/activate', api: 'admin' },
+    upload: { method: "POST", path: "/themes/upload", api: "admin" },
+    activate: { method: "PUT", path: "/themes/:name/activate", api: "admin" },
   },
   site: {
-    read: { method: 'GET', path: '/site', api: 'admin' },
+    read: { method: "GET", path: "/site", api: "admin" },
   },
   settings: {
-    read: { method: 'GET', path: '/settings', api: 'admin' },
-    edit: { method: 'PUT', path: '/settings', api: 'admin' },
+    read: { method: "GET", path: "/settings", api: "admin" },
+    edit: { method: "PUT", path: "/settings", api: "admin" },
   },
   // Content API
   authors: {
-    browse: { method: 'GET', path: '/authors', api: 'content' },
-    read: { method: 'GET', path: '/authors/:id', api: 'content' },
-    readBySlug: { method: 'GET', path: '/authors/slug/:slug', api: 'content' },
+    browse: { method: "GET", path: "/authors", api: "content" },
+    read: { method: "GET", path: "/authors/:id", api: "content" },
+    readBySlug: { method: "GET", path: "/authors/slug/:slug", api: "content" },
+  },
+} as const satisfies Record<string, Record<string, RouteDefinition>>;
+
+/**
+ * Content API routes — read-only, no Staff Access Token required.
+ *
+ * Paths are identical to the Admin API counterparts; only the `api` field
+ * differs. `GhostHttpClient.content_()` appends `?key=<contentApiKey>`.
+ */
+export const CONTENT_ROUTES = {
+  posts: {
+    browse: { method: "GET", path: "/posts", api: "content" },
+    read: { method: "GET", path: "/posts/:id", api: "content" },
+    readBySlug: { method: "GET", path: "/posts/slug/:slug", api: "content" },
+  },
+  pages: {
+    browse: { method: "GET", path: "/pages", api: "content" },
+    read: { method: "GET", path: "/pages/:id", api: "content" },
+    readBySlug: { method: "GET", path: "/pages/slug/:slug", api: "content" },
+  },
+  tags: {
+    browse: { method: "GET", path: "/tags", api: "content" },
+    read: { method: "GET", path: "/tags/:id", api: "content" },
+    readBySlug: { method: "GET", path: "/tags/slug/:slug", api: "content" },
+  },
+  tiers: {
+    browse: { method: "GET", path: "/tiers", api: "content" },
+    read: { method: "GET", path: "/tiers/:id", api: "content" },
   },
 } as const satisfies Record<string, Record<string, RouteDefinition>>;
 
@@ -139,7 +167,7 @@ export function buildPath(route: RouteDefinition, params: RouteParams = {}): str
   });
 
   if (missing.length > 0) {
-    throw new Error(`Missing route params: ${missing.join(', ')}`);
+    throw new Error(`Missing route params: ${missing.join(", ")}`);
   }
 
   return path;
@@ -165,8 +193,8 @@ export async function request<T = unknown>(
 ): Promise<T> {
   const path = buildPath(route, params);
 
-  if (route.api === 'content') {
-    if (route.method !== 'GET') {
+  if (route.api === "content") {
+    if (route.method !== "GET") {
       throw new Error(`Content API only supports GET (got ${route.method} ${path}).`);
     }
     return contentRequest<T>(ctx.client, path, options?.query);
@@ -190,5 +218,5 @@ function contentRequest<T>(
   path: string,
   query: Record<string, string | number | undefined> | undefined,
 ): Promise<T> {
-  return client.content_<T>('GET', path, query);
+  return client.content_<T>("GET", path, query);
 }

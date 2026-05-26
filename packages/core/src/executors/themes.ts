@@ -1,7 +1,7 @@
-import { unwrapOne } from '@ikko-dev/ghost-api';
+import { unwrapOne } from "@ikko-dev/ghost-api";
 
-import type { ExecutorContext, ExecutorResult } from '../context.ts';
-import { ROUTES, request } from '../routes.ts';
+import type { ExecutorContext, ExecutorResult } from "../context.ts";
+import { ROUTES, request } from "../routes.ts";
 
 export interface Theme {
   name: string;
@@ -26,17 +26,19 @@ export async function uploadTheme(
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Theme | undefined>> {
   const response = await ctx.client.uploadAdmin<ThemesEnvelope>(
-    '/themes/upload',
+    "/themes/upload",
     options.file,
     options.filename,
   );
-  return { data: unwrapOne<Theme>(response, 'themes') };
+  return { data: unwrapOne<Theme>(response, "themes") };
 }
 
 export async function activateTheme(
   options: { name: string },
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Theme | undefined>> {
-  const response = await request<ThemesEnvelope>(ROUTES.themes.activate, ctx, { name: options.name });
-  return { data: unwrapOne<Theme>(response, 'themes') };
+  const response = await request<ThemesEnvelope>(ROUTES.themes.activate, ctx, {
+    name: options.name,
+  });
+  return { data: unwrapOne<Theme>(response, "themes") };
 }

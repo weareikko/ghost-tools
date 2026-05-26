@@ -5,8 +5,8 @@
   "keywords": [
     "ai",
     "claude",
-    "ghost",
     "cms",
+    "ghost",
     "http",
     "mcp",
     "model-context-protocol",
@@ -61,7 +61,7 @@
     "@ikko-dev/ghost-api": "*",
     "@ikko-dev/ghost-core": "*",
     "@modelcontextprotocol/sdk": "^1.27.0",
-    "h3": "^2.0.0-rc.0"
+    "h3": "^2.0.1-rc.22"
   },
   "devDependencies": {
     "typescript": "^5.6.0",

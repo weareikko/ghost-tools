@@ -11,12 +11,12 @@ SDK, shared executors, and MCP server.
 
 ## Packages
 
-| Package | Description |
-| ------- | ----------- |
-| [`@ikko-dev/ghost-api`](./packages/api) | Low-level HTTP client for Ghost Admin + Content APIs (JWT signing, fetch wrapper, types). |
-| [`@ikko-dev/ghost-core`](./packages/core) | Shared business logic — executors, routes, context. Used by both the SDK and the MCP server. |
-| [`@ikko-dev/ghost-sdk`](./packages/sdk) | Fluent TypeScript SDK on top of the API client. |
-| [`@ikko-dev/ghost-mcp`](./packages/mcp) | MCP server (stdio + Streamable HTTP) — exposes Ghost as MCP tools for Claude and other agents. |
+| Package                                   | Description                                                                                    |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [`@ikko-dev/ghost-api`](./packages/api)   | Low-level HTTP client for Ghost Admin + Content APIs (JWT signing, fetch wrapper, types).      |
+| [`@ikko-dev/ghost-core`](./packages/core) | Shared business logic — executors, routes, context. Used by both the SDK and the MCP server.   |
+| [`@ikko-dev/ghost-sdk`](./packages/sdk)   | Fluent TypeScript SDK on top of the API client.                                                |
+| [`@ikko-dev/ghost-mcp`](./packages/mcp)   | MCP server (stdio + Streamable HTTP) — exposes Ghost as MCP tools for Claude and other agents. |
 
 ## Architecture
 

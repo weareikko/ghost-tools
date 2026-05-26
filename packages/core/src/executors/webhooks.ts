@@ -1,8 +1,8 @@
-import type { Webhook } from '@ikko-dev/ghost-api';
-import { unwrapOne, wrapForWrite } from '@ikko-dev/ghost-api';
+import type { Webhook } from "@ikko-dev/ghost-api";
+import { unwrapOne, wrapForWrite } from "@ikko-dev/ghost-api";
 
-import type { ExecutorContext, ExecutorResult } from '../context.ts';
-import { ROUTES, request } from '../routes.ts';
+import type { ExecutorContext, ExecutorResult } from "../context.ts";
+import { ROUTES, request } from "../routes.ts";
 
 interface WebhooksEnvelope {
   webhooks: Webhook[];
@@ -17,10 +17,15 @@ export async function addWebhook(
   options: AddWebhookOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Webhook | undefined>> {
-  const response = await request<WebhooksEnvelope>(ROUTES.webhooks.add, ctx, {}, {
-    body: wrapForWrite('webhooks', options),
-  });
-  return { data: unwrapOne<Webhook>(response, 'webhooks') };
+  const response = await request<WebhooksEnvelope>(
+    ROUTES.webhooks.add,
+    ctx,
+    {},
+    {
+      body: wrapForWrite("webhooks", options),
+    },
+  );
+  return { data: unwrapOne<Webhook>(response, "webhooks") };
 }
 
 export interface EditWebhookOptions extends Partial<Webhook> {
@@ -32,10 +37,15 @@ export async function editWebhook(
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Webhook | undefined>> {
   const { id, ...body } = options;
-  const response = await request<WebhooksEnvelope>(ROUTES.webhooks.edit, ctx, { id }, {
-    body: wrapForWrite('webhooks', body),
-  });
-  return { data: unwrapOne<Webhook>(response, 'webhooks') };
+  const response = await request<WebhooksEnvelope>(
+    ROUTES.webhooks.edit,
+    ctx,
+    { id },
+    {
+      body: wrapForWrite("webhooks", body),
+    },
+  );
+  return { data: unwrapOne<Webhook>(response, "webhooks") };
 }
 
 export async function deleteWebhook(

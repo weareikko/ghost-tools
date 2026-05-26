@@ -1,4 +1,4 @@
-import type { Meta } from '@ikko-dev/ghost-api';
+import type { Meta } from "@ikko-dev/ghost-api";
 
 /**
  * Async iterator over every page of a Ghost browse endpoint.

@@ -6,8 +6,8 @@
  * reference and the path/key by closure.
  */
 
-import type { BrowseParams, GhostHttpClient, Meta, ReadParams } from '@ikko-dev/ghost-api';
-import { unwrapMany, unwrapOne, wrapForWrite } from '@ikko-dev/ghost-api';
+import type { BrowseParams, GhostHttpClient, Meta, ReadParams } from "@ikko-dev/ghost-api";
+import { unwrapMany, unwrapOne, wrapForWrite } from "@ikko-dev/ghost-api";
 
 type Q = Record<string, string | number | undefined>;
 
@@ -36,7 +36,7 @@ export class AdminResource<T> {
 
   async browse(params: BrowseParams = {}): Promise<{ items: T[]; meta?: Meta }> {
     const res = await this.client.admin_<Record<string, unknown>>(
-      'GET',
+      "GET",
       this.basePath,
       undefined,
       browseToQuery(params),
@@ -46,7 +46,7 @@ export class AdminResource<T> {
 
   async read(id: string, params: ReadParams = {}): Promise<T | undefined> {
     const res = await this.client.admin_<Record<string, unknown>>(
-      'GET',
+      "GET",
       `${this.basePath}/${encodeURIComponent(id)}`,
       undefined,
       readToQuery(params),
@@ -56,7 +56,7 @@ export class AdminResource<T> {
 
   async readBySlug(slug: string, params: ReadParams = {}): Promise<T | undefined> {
     const res = await this.client.admin_<Record<string, unknown>>(
-      'GET',
+      "GET",
       `${this.basePath}/slug/${encodeURIComponent(slug)}`,
       undefined,
       readToQuery(params),
@@ -66,7 +66,7 @@ export class AdminResource<T> {
 
   async add(payload: Partial<T>): Promise<T | undefined> {
     const res = await this.client.admin_<Record<string, unknown>>(
-      'POST',
+      "POST",
       this.basePath,
       wrapForWrite(this.key, payload),
     );
@@ -75,7 +75,7 @@ export class AdminResource<T> {
 
   async edit(id: string, payload: Partial<T>): Promise<T | undefined> {
     const res = await this.client.admin_<Record<string, unknown>>(
-      'PUT',
+      "PUT",
       `${this.basePath}/${encodeURIComponent(id)}`,
       wrapForWrite(this.key, payload),
     );
@@ -83,18 +83,20 @@ export class AdminResource<T> {
   }
 
   async delete(id: string): Promise<void> {
-    await this.client.admin_<void>('DELETE', `${this.basePath}/${encodeURIComponent(id)}`);
+    await this.client.admin_<void>("DELETE", `${this.basePath}/${encodeURIComponent(id)}`);
   }
 }
 
 export class CopyableResource<T> extends AdminResource<T> {
   async copy(id: string): Promise<T | undefined> {
-    const res = await (this as unknown as {
-      client: GhostHttpClient;
-      key: string;
-      basePath: string;
-    }).client.admin_<Record<string, unknown>>(
-      'POST',
+    const res = await (
+      this as unknown as {
+        client: GhostHttpClient;
+        key: string;
+        basePath: string;
+      }
+    ).client.admin_<Record<string, unknown>>(
+      "POST",
       `${(this as unknown as { basePath: string }).basePath}/${encodeURIComponent(id)}/copy`,
     );
     return unwrapOne<T>(res, (this as unknown as { key: string }).key);
@@ -110,7 +112,7 @@ export class ContentResource<T> {
 
   async browse(params: BrowseParams = {}): Promise<{ items: T[]; meta?: Meta }> {
     const res = await this.client.content_<Record<string, unknown>>(
-      'GET',
+      "GET",
       this.basePath,
       browseToQuery(params),
     );
@@ -119,7 +121,7 @@ export class ContentResource<T> {
 
   async read(id: string, params: ReadParams = {}): Promise<T | undefined> {
     const res = await this.client.content_<Record<string, unknown>>(
-      'GET',
+      "GET",
       `${this.basePath}/${encodeURIComponent(id)}`,
       readToQuery(params),
     );
@@ -128,7 +130,7 @@ export class ContentResource<T> {
 
   async readBySlug(slug: string, params: ReadParams = {}): Promise<T | undefined> {
     const res = await this.client.content_<Record<string, unknown>>(
-      'GET',
+      "GET",
       `${this.basePath}/slug/${encodeURIComponent(slug)}`,
       readToQuery(params),
     );

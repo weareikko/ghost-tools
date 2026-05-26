@@ -1,6 +1,6 @@
-import type { UploadedImage } from '@ikko-dev/ghost-api';
+import type { UploadedImage } from "@ikko-dev/ghost-api";
 
-import type { ExecutorContext, ExecutorResult } from '../context.ts';
+import type { ExecutorContext, ExecutorResult } from "../context.ts";
 
 interface ImagesEnvelope {
   images: UploadedImage[];
@@ -12,7 +12,7 @@ export interface UploadImageOptions {
   /** Original filename including extension. */
   filename: string;
   /** Purpose hint — Ghost uses this for resize defaults. */
-  purpose?: 'image' | 'profile_image' | 'icon';
+  purpose?: "image" | "profile_image" | "icon";
   /** Optional original reference for resizing. */
   ref?: string;
 }
@@ -31,7 +31,7 @@ export async function uploadImage(
   if (options.ref) fields.ref = options.ref;
 
   const response = await ctx.client.uploadAdmin<ImagesEnvelope>(
-    '/images/upload',
+    "/images/upload",
     options.file,
     options.filename,
     fields,

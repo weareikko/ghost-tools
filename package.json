@@ -8,10 +8,10 @@
     "api",
     "automation",
     "blog",
+    "cms",
     "ghost",
     "mcp",
-    "model-context-protocol",
-    "cms"
+    "model-context-protocol"
   ],
   "license": "MIT",
   "author": "ikko",

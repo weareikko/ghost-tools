@@ -7,28 +7,28 @@
  */
 export const RESOURCES = [
   // Admin API — content
-  'posts',
-  'pages',
-  'tags',
+  "posts",
+  "pages",
+  "tags",
   // Admin API — audience
-  'members',
-  'tiers',
-  'newsletters',
-  'offers',
+  "members",
+  "tiers",
+  "newsletters",
+  "offers",
   // Admin API — staff
-  'users',
-  'roles',
-  'invites',
+  "users",
+  "roles",
+  "invites",
   // Admin API — integration
-  'webhooks',
+  "webhooks",
   // Admin API — uploads & themes
-  'images',
-  'themes',
+  "images",
+  "themes",
   // Admin API — info
-  'site',
-  'settings',
+  "site",
+  "settings",
   // Content API — public-facing
-  'authors',
+  "authors",
 ] as const;
 
 export type Resource = (typeof RESOURCES)[number];
@@ -40,16 +40,16 @@ export type Resource = (typeof RESOURCES)[number];
  * `help` and `schema` are MCP-only doc actions.
  */
 export const ACTIONS = [
-  'browse',
-  'read',
-  'add',
-  'edit',
-  'delete',
-  'copy',
-  'upload',
-  'activate',
-  'help',
-  'schema',
+  "browse",
+  "read",
+  "add",
+  "edit",
+  "delete",
+  "copy",
+  "upload",
+  "activate",
+  "help",
+  "schema",
 ] as const;
 
 export type Action = (typeof ACTIONS)[number];
@@ -57,13 +57,13 @@ export type Action = (typeof ACTIONS)[number];
 /**
  * Actions that are safe to auto-approve in MCP clients.
  */
-export const READ_ACTIONS = ['browse', 'read', 'help', 'schema'] as const;
+export const READ_ACTIONS = ["browse", "read", "help", "schema"] as const;
 export type ReadAction = (typeof READ_ACTIONS)[number];
 
 /**
  * Actions that mutate state and should require user confirmation.
  */
-export const WRITE_ACTIONS = ['add', 'edit', 'delete', 'copy', 'upload', 'activate'] as const;
+export const WRITE_ACTIONS = ["add", "edit", "delete", "copy", "upload", "activate"] as const;
 export type WriteAction = (typeof WRITE_ACTIONS)[number];
 
 export function isReadAction(action: string): action is ReadAction {
@@ -72,4 +72,18 @@ export function isReadAction(action: string): action is ReadAction {
 
 export function isWriteAction(action: string): action is WriteAction {
   return (WRITE_ACTIONS as readonly string[]).includes(action);
+}
+
+/**
+ * Resources available on the Ghost Content API.
+ *
+ * These are the only resources exposed when the server runs in public content mode.
+ * The Content API is read-only and does not require a Staff Access Token.
+ */
+export const CONTENT_RESOURCES = ["posts", "pages", "tags", "tiers", "authors"] as const;
+
+export type ContentResource = (typeof CONTENT_RESOURCES)[number];
+
+export function isContentResource(r: string): r is ContentResource {
+  return (CONTENT_RESOURCES as readonly string[]).includes(r);
 }

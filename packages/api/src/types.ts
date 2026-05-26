@@ -84,7 +84,7 @@ export interface BrowseParams {
   /** Content format(s), e.g. `html`, `mobiledoc`, `lexical`, `plaintext`. */
   formats?: string;
   /** Page size (default 15, max 100). */
-  limit?: number | 'all';
+  limit?: number | "all";
   /** Page number (1-indexed). */
   page?: number;
   /** Sort order, e.g. `published_at desc`. */
